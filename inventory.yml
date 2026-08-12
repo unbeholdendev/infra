@@ -26,3 +26,8 @@ all:
     router:
       hosts:
         openwrt: { ansible_host: 192.168.99.1, ansible_user: root }
+    docker_hosts:
+      hosts:
+        deb-misc:
+        deb-agent:
+        deb-runner:
