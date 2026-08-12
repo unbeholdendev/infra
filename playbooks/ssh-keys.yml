@@ -1,12 +1,24 @@
 - name: Ensure fleet keys present (additive)
-  hosts: lxc:physical:vps:work
+  hosts: lxc:physical
   tasks:
-    - name: Authorize each key from keys/
+    - name: Authorize each fleet key
       ansible.posix.authorized_key:
         user: "{{ ansible_user }}"
         key: "{{ lookup('file', item) }}"
         state: present
-      loop: "{{ query('fileglob', '../keys/*.pub') }}"
+      loop: "{{ query('fileglob', '../keys/fleet/*.pub') }}"
+      loop_control:
+        label: "{{ item | basename }}"
+
+- name: Ensure work-approved keys present on work hosts (additive)
+  hosts: work
+  tasks:
+    - name: Authorize each work-approved key
+      ansible.posix.authorized_key:
+        user: "{{ ansible_user }}"
+        key: "{{ lookup('file', item) }}"
+        state: present
+      loop: "{{ query('fileglob', '../keys/work/*.pub') }}"
       loop_control:
         label: "{{ item | basename }}"
 
@@ -14,10 +26,22 @@
   hosts: router
   gather_facts: false
   tasks:
-    - name: Append each key to dropbear authorized_keys if absent
+    - name: Append each fleet key to dropbear authorized_keys if absent
       ansible.builtin.raw: |
         grep -qF "{{ lookup('file', item) | trim }}" /etc/dropbear/authorized_keys 2>/dev/null \
           || echo "{{ lookup('file', item) | trim }}" >> /etc/dropbear/authorized_keys
-      loop: "{{ query('fileglob', '../keys/*.pub') }}"
+      loop: "{{ query('fileglob', '../keys/fleet/*.pub') }}"
       loop_control:
         label: "{{ item | basename }}"
+
+- name: Enforce exact key set (exclusive)
+  hosts: vps
+  tasks:
+    - name: authorized_keys = fleet keys + declared host extras, nothing else
+      ansible.posix.authorized_key:
+        user: "{{ ansible_user }}"
+        exclusive: true
+        key: |
+          {% for f in query('fileglob', '../keys/fleet/*.pub') %}{{ lookup('file', f) }}
+          {% endfor %}{% for f in extra_authorized_keys | default([]) %}{{ lookup('file', '../' + f) }}
+          {% endfor %}
