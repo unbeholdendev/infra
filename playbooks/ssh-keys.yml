@@ -1,0 +1,23 @@
+- name: Ensure fleet keys present (additive)
+  hosts: lxc:physical:vps:work
+  tasks:
+    - name: Authorize each key from keys/
+      ansible.posix.authorized_key:
+        user: "{{ ansible_user }}"
+        key: "{{ lookup('file', item) }}"
+        state: present
+      loop: "{{ query('fileglob', '../keys/*.pub') }}"
+      loop_control:
+        label: "{{ item | basename }}"
+
+- name: Ensure fleet keys present on OpenWrt (additive)
+  hosts: router
+  gather_facts: false
+  tasks:
+    - name: Append each key to dropbear authorized_keys if absent
+      ansible.builtin.raw: |
+        grep -qF "{{ lookup('file', item) | trim }}" /etc/dropbear/authorized_keys 2>/dev/null \
+          || echo "{{ lookup('file', item) | trim }}" >> /etc/dropbear/authorized_keys
+      loop: "{{ query('fileglob', '../keys/*.pub') }}"
+      loop_control:
+        label: "{{ item | basename }}"

@@ -1,0 +1,28 @@
+all:
+  children:
+    lxc:
+      hosts:
+        deb-btc:     { ansible_host: 192.168.4.11 }
+        deb-misc:    { ansible_host: 192.168.4.12 }
+        deb-agent:   { ansible_host: 192.168.4.13 }
+        deb-newt:    { ansible_host: 192.168.4.14 }
+        deb-dokploy: { ansible_host: 192.168.4.15 }
+        deb-runner:  { ansible_host: 192.168.4.16 }
+      vars:
+        ansible_user: root
+    physical:
+      hosts:
+        pve:  { ansible_host: 192.168.4.10, ansible_user: root }
+    vps:
+      hosts:
+        vps-france:  { ansible_host: 92.119.127.234 }
+        vps-germany: { ansible_host: 89.58.40.247 }
+      vars:
+        ansible_user: pycan
+    work:
+      hosts:
+      vars:
+        ansible_user: admin
+    router:
+      hosts:
+        openwrt: { ansible_host: 192.168.99.1, ansible_user: root }
