@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "forgejo": {
+      "command": "sh",
+      "args": ["-c", "exec forgejo-mcp --transport stdio --token \"$(cat \"$HOME/.forgejo-token\")\""]
+    }
+  }
+}
