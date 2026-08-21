@@ -31,3 +31,6 @@ all:
         deb-misc:
         deb-agent:
         deb-runner:
+    forgejo_clients:
+      hosts:
+        deb-agent:
