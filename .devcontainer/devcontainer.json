@@ -4,5 +4,5 @@
   "features": {
     "ghcr.io/devcontainers-extra/features/ansible:2": {}
   },
-  "postCreateCommand": "ansible-galaxy install -r requirements.yml -p galaxy_roles"
+  "postCreateCommand": "pipx inject --include-apps ansible-core ansible-lint && ansible-galaxy install -r requirements.yml -p galaxy_roles"
 }
