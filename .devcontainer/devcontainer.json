@@ -1,14 +1,8 @@
 {
   "name": "infra",
-  "build": { "dockerfile": "Dockerfile" },
-  "containerEnv": {
-    "FORGEJO_URL": "https://git.unbeholden.dev",
-    "IS_SANDBOX": "1",
-    "CLAUDE_CONFIG_DIR": "/root/.claude",
+  "image": "debian:bookworm-slim",
+  "features": {
+    "ghcr.io/devcontainers-extra/features/ansible:2": {}
   },
-  "mounts": [
-    "source=claude-auth,target=/root/.claude,type=volume",
-    "source=/root/.forgejo-token,target=/root/.forgejo-token,type=bind,readonly"
-  ],
-  "postCreateCommand": ".devcontainer/post-create.sh"
+  "postCreateCommand": "ansible-galaxy install -r requirements.yml -p galaxy_roles"
 }
