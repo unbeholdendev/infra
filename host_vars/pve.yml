@@ -1,0 +1,3 @@
+# Proxmox owns root's authorized_keys here: it is a symlink into
+# /etc/pve/priv/ and an exclusive run would strip what PVE put in it.
+authorized_keys_exclusive: false

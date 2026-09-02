@@ -1,0 +1,3 @@
+distribution_key_files: "{{ query('fileglob', inventory_dir + '/keys/distribution/*.pub') }}"
+admin_key_files: "{{ query('fileglob', inventory_dir + '/keys/admin/*.pub') }}"
+authorized_keys_exclusive: true
