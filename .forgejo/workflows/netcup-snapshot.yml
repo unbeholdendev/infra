@@ -1,0 +1,65 @@
+name: netcup snapshot
+
+on:
+  schedule:
+    - cron: "30 2 * * *"
+  workflow_dispatch:
+
+env:
+  TOKEN_URL: https://www.servercontrolpanel.de/realms/scp/protocol/openid-connect/token
+  API: https://www.servercontrolpanel.de/scp-core/api/v1
+  KEEP: 4
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Snapshot vps-germany and prune old ones
+        env:
+          SERVER_ID: ${{ vars.NETCUP_SERVER_ID }}
+          REFRESH_TOKEN: ${{ secrets.NETCUP_REFRESH_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          mint() {
+            curl -sSf "$TOKEN_URL" -d grant_type=refresh_token -d client_id=scp \
+              --data-urlencode "refresh_token=$REFRESH_TOKEN" | jq -re .access_token
+          }
+
+          api() {
+            local path=$1 token
+            shift
+            token=$(mint)
+            curl -sSf -H "Authorization: Bearer $token" "$API$path" "$@"
+          }
+
+          name="auto-$(date -u +%Y%m%dT%H%MZ)"
+          task=$(api "/servers/$SERVER_ID/snapshots" -H 'Content-Type: application/json' \
+            -d "{\"name\":\"$name\",\"description\":\"scheduled\",\"onlineSnapshot\":true}" \
+            | jq -re .uuid)
+          echo "created $name, task $task"
+
+          for _ in $(seq 30); do
+            state=$(api "/tasks/$task" | jq -re .state)
+            case $state in
+            FINISHED) break ;;
+            PENDING | RUNNING) sleep 60 ;;
+            *)
+              echo "snapshot task $state" >&2
+              exit 1
+              ;;
+            esac
+          done
+          [ "$state" = FINISHED ] || {
+            echo "snapshot still $state after 30 minutes" >&2
+            exit 1
+          }
+
+          api "/servers/$SERVER_ID/snapshots" \
+            | jq -r --argjson keep "$KEEP" '
+                [.[] | select(.name | startswith("auto-"))]
+                | sort_by(.creationTime) | reverse | .[$keep:] | .[].name' \
+            | while read -r old; do
+              api "/servers/$SERVER_ID/snapshots/$old" -X DELETE >/dev/null
+              echo "deleted $old"
+            done

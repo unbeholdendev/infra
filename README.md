@@ -1,0 +1,29 @@
+# infra
+
+Ansible playbooks for the fleet, and the jobs that back it up.
+
+## netcup snapshots
+
+`.forgejo/workflows/netcup-snapshot.yml` snapshots the whole of `vps-germany`
+at 02:30 and keeps the four newest. Snapshots sit on netcup storage under the
+netcup account, are taken without stopping anything, and roll back the entire
+server when reverted.
+
+It needs, once:
+
+- repo secret `NETCUP_REFRESH_TOKEN`, from the device flow:
+
+  ```sh
+  curl -s -X POST https://www.servercontrolpanel.de/realms/scp/protocol/openid-connect/auth/device \
+    -d client_id=scp -d scope="openid offline_access"
+  # open verification_uri_complete, approve, then:
+  curl -s -X POST https://www.servercontrolpanel.de/realms/scp/protocol/openid-connect/token \
+    -d grant_type=urn:ietf:params:oauth:grant-type:device_code \
+    -d client_id=scp -d device_code=<device_code>
+  ```
+
+- repo variable `NETCUP_SERVER_ID`, from
+  `GET https://www.servercontrolpanel.de/scp-core/api/v1/servers`
+- a `runs-on` label that `deb-runner` registers, on an image with `curl` and `jq`
+
+Schedules only fire from the default branch, so it starts once merged.
