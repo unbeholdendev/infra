@@ -22,44 +22,44 @@ jobs:
           set -euo pipefail
 
           mint() {
-            curl -sSf -X POST "$TOKEN_URL" \
-              -d grant_type=refresh_token -d client_id=scp \
+            curl -sSf "$TOKEN_URL" -d grant_type=refresh_token -d client_id=scp \
               --data-urlencode "refresh_token=$REFRESH_TOKEN" | jq -re .access_token
           }
 
-          token=$(mint)
-          name="auto-$(date -u +%Y%m%dT%H%MZ)"
+          api() {
+            local path=$1 token
+            shift
+            token=$(mint)
+            curl -sSf -H "Authorization: Bearer $token" "$API$path" "$@"
+          }
 
-          task=$(curl -sSf -X POST "$API/servers/$SERVER_ID/snapshots" \
-            -H "Authorization: Bearer $token" -H 'Content-Type: application/json' \
+          name="auto-$(date -u +%Y%m%dT%H%MZ)"
+          task=$(api "/servers/$SERVER_ID/snapshots" -H 'Content-Type: application/json' \
             -d "{\"name\":\"$name\",\"description\":\"scheduled\",\"onlineSnapshot\":true}" \
             | jq -re .uuid)
           echo "created $name, task $task"
 
-          state=PENDING
-          i=0
-          while [ "$i" -lt 60 ]; do
-            [ $((i % 8)) -eq 0 ] && token=$(mint)
-            state=$(curl -sSf "$API/tasks/$task" -H "Authorization: Bearer $token" | jq -re .state)
-            case "$state" in
+          for _ in $(seq 30); do
+            state=$(api "/tasks/$task" | jq -re .state)
+            case $state in
             FINISHED) break ;;
-            FAILED | CANCELED)
+            PENDING | RUNNING) sleep 60 ;;
+            *)
               echo "snapshot task $state" >&2
               exit 1
               ;;
             esac
-            sleep 30
-            i=$((i + 1))
           done
           [ "$state" = FINISHED ] || {
             echo "snapshot still $state after 30 minutes" >&2
             exit 1
           }
 
-          curl -sSf "$API/servers/$SERVER_ID/snapshots" -H "Authorization: Bearer $token" \
-            | jq -r --argjson keep "$KEEP" 'sort_by(.creationTime) | reverse | .[$keep:] | .[].name' \
+          api "/servers/$SERVER_ID/snapshots" \
+            | jq -r --argjson keep "$KEEP" '
+                [.[] | select(.name | startswith("auto-"))]
+                | sort_by(.creationTime) | reverse | .[$keep:] | .[].name' \
             | while read -r old; do
-              curl -sSf -X DELETE "$API/servers/$SERVER_ID/snapshots/$old" \
-                -H "Authorization: Bearer $token" >/dev/null
+              api "/servers/$SERVER_ID/snapshots/$old" -X DELETE >/dev/null
               echo "deleted $old"
             done
