@@ -1,0 +1,65 @@
+name: netcup snapshot
+
+on:
+  schedule:
+    - cron: "30 2 * * *"
+  workflow_dispatch:
+
+env:
+  TOKEN_URL: https://www.servercontrolpanel.de/realms/scp/protocol/openid-connect/token
+  API: https://www.servercontrolpanel.de/scp-core/api/v1
+  KEEP: 4
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Snapshot vps-germany and prune old ones
+        env:
+          SERVER_ID: ${{ vars.NETCUP_SERVER_ID }}
+          REFRESH_TOKEN: ${{ secrets.NETCUP_REFRESH_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          mint() {
+            curl -sSf -X POST "$TOKEN_URL" \
+              -d grant_type=refresh_token -d client_id=scp \
+              --data-urlencode "refresh_token=$REFRESH_TOKEN" | jq -re .access_token
+          }
+
+          token=$(mint)
+          name="auto-$(date -u +%Y%m%dT%H%MZ)"
+
+          task=$(curl -sSf -X POST "$API/servers/$SERVER_ID/snapshots" \
+            -H "Authorization: Bearer $token" -H 'Content-Type: application/json' \
+            -d "{\"name\":\"$name\",\"description\":\"scheduled\",\"onlineSnapshot\":true}" \
+            | jq -re .uuid)
+          echo "created $name, task $task"
+
+          state=PENDING
+          i=0
+          while [ "$i" -lt 60 ]; do
+            [ $((i % 8)) -eq 0 ] && token=$(mint)
+            state=$(curl -sSf "$API/tasks/$task" -H "Authorization: Bearer $token" | jq -re .state)
+            case "$state" in
+            FINISHED) break ;;
+            FAILED | CANCELED)
+              echo "snapshot task $state" >&2
+              exit 1
+              ;;
+            esac
+            sleep 30
+            i=$((i + 1))
+          done
+          [ "$state" = FINISHED ] || {
+            echo "snapshot still $state after 30 minutes" >&2
+            exit 1
+          }
+
+          curl -sSf "$API/servers/$SERVER_ID/snapshots" -H "Authorization: Bearer $token" \
+            | jq -r --argjson keep "$KEEP" 'sort_by(.creationTime) | reverse | .[$keep:] | .[].name' \
+            | while read -r old; do
+              curl -sSf -X DELETE "$API/servers/$SERVER_ID/snapshots/$old" \
+                -H "Authorization: Bearer $token" >/dev/null
+              echo "deleted $old"
+            done
