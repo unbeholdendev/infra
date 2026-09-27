@@ -34,3 +34,6 @@ all:
     forgejo_clients:
       hosts:
         oren:
+    tailscale_nodes:
+      hosts:
+        gludio:

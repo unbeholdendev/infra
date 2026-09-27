@@ -1,0 +1,65 @@
+- name: Install Tailscale and join the tailnet
+  hosts: tailscale_nodes
+
+  vars:
+    headscale_url: https://hs.unbeholden.dev
+
+  vars_prompt:
+    - name: tailscale_authkey
+      prompt: Headscale pre-auth key (blank if every node is already joined)
+      private: true
+      unsafe: true
+
+  tasks:
+    # Same key path and source file as Tailscale's install script, so a node
+    # it set up is left unchanged.
+    - name: Install the Tailscale apt key
+      ansible.builtin.get_url:
+        url: "https://pkgs.tailscale.com/stable/debian/{{ ansible_facts.distribution_release }}.noarmor.gpg"
+        dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
+        mode: "0644"
+
+    - name: Add the Tailscale apt repository
+      ansible.builtin.apt_repository:
+        repo: >-
+          deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg]
+          https://pkgs.tailscale.com/stable/debian
+          {{ ansible_facts.distribution_release }} main
+        filename: tailscale
+
+    - name: Install Tailscale
+      ansible.builtin.apt:
+        name: tailscale
+
+    - name: Enable IP forwarding for subnet routes
+      ansible.posix.sysctl:
+        name: net.ipv4.ip_forward
+        value: "1"
+        sysctl_file: /etc/sysctl.d/99-tailscale.conf
+      when: tailscale_routes is defined
+
+    - name: Read Tailscale state
+      ansible.builtin.command: tailscale status
+      register: tailscale_status
+      changed_when: false
+      failed_when: false
+
+    # Without a key, tailscale up waits forever for an interactive login.
+    - name: Check a key was given
+      ansible.builtin.assert:
+        that: tailscale_authkey not in ['', 'None']
+        fail_msg: "{{ inventory_hostname }} is not joined yet. Pass a pre-auth key."
+        quiet: true
+      when: tailscale_status.rc != 0
+
+    - name: Join the tailnet
+      ansible.builtin.command: >-
+        tailscale up
+        --login-server {{ headscale_url }}
+        --authkey {{ tailscale_authkey }}
+        --advertise-tags={{ tailscale_tags | default('') }}
+        --advertise-routes={{ tailscale_routes | default('') }}
+        --accept-dns=false
+      when: tailscale_status.rc != 0
+      no_log: true
+      changed_when: true
