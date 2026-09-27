@@ -37,3 +37,4 @@ all:
     tailscale_nodes:
       hosts:
         gludio:
+        giran:

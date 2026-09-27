@@ -1,5 +1,6 @@
 - name: Install Tailscale and join the tailnet
   hosts: tailscale_nodes
+  become: true
 
   vars:
     headscale_url: https://hs.unbeholden.dev
@@ -18,10 +19,10 @@
     - name: Add the Tailscale apt repository
       ansible.builtin.deb822_repository:
         name: tailscale
-        uris: https://pkgs.tailscale.com/stable/debian
+        uris: https://pkgs.tailscale.com/stable/{{ ansible_facts.distribution | lower }}
         suites: "{{ ansible_facts.distribution_release }}"
         components: main
-        signed_by: "https://pkgs.tailscale.com/stable/debian/{{ ansible_facts.distribution_release }}.noarmor.gpg"
+        signed_by: "https://pkgs.tailscale.com/stable/{{ ansible_facts.distribution | lower }}/{{ ansible_facts.distribution_release }}.noarmor.gpg"
 
     # Tailscale's install script writes this; left in place, apt sees the repo twice.
     - name: Remove the install script's apt source
