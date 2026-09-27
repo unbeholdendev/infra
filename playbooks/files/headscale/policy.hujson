@@ -1,15 +1,15 @@
 {
   "tagOwners": {
-    "tag:deb-newt": ["unbeholden@"],
+    "tag:gludio": ["unbeholden@"],
     "tag:giran": ["unbeholden@"]
   },
   "hosts": {
-    "deb-misc": "192.168.4.12/32"
+    "aden": "192.168.4.12/32"
   },
   "autoApprovers": {
-    "routes": { "192.168.4.12/32": ["tag:deb-newt"] }
+    "routes": { "192.168.4.12/32": ["tag:gludio"] }
   },
   "acls": [
-    { "action": "accept", "src": ["tag:giran"], "dst": ["deb-misc:443"] }
+    { "action": "accept", "src": ["tag:giran"], "dst": ["aden:443"] }
   ]
 }

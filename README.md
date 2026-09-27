@@ -24,6 +24,6 @@ It needs, once:
 
 - repo variable `NETCUP_SERVER_ID`, from
   `GET https://www.servercontrolpanel.de/scp-core/api/v1/servers`
-- `deb-runner` online, its `docker` label mapped to an image carrying `curl` and `jq`
+- `heine` online, its `docker` label mapped to an image carrying `curl` and `jq`
 
 Schedules only fire from the default branch, so it starts once merged.
