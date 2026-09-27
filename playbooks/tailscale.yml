@@ -6,26 +6,28 @@
 
   vars_prompt:
     - name: tailscale_authkey
-      prompt: Headscale pre-auth key (blank if every node is already joined)
+      prompt: Headscale pre-auth key, created with --tags for tagged nodes (blank if every node is already joined)
       private: true
       unsafe: true
 
   tasks:
-    # Same key path and source file as Tailscale's install script, so a node
-    # it set up is left unchanged.
-    - name: Install the Tailscale apt key
-      ansible.builtin.get_url:
-        url: "https://pkgs.tailscale.com/stable/debian/{{ ansible_facts.distribution_release }}.noarmor.gpg"
-        dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
-        mode: "0644"
+    - name: Install deb822_repository's dependency
+      ansible.builtin.apt:
+        name: python3-debian
 
     - name: Add the Tailscale apt repository
-      ansible.builtin.apt_repository:
-        repo: >-
-          deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg]
-          https://pkgs.tailscale.com/stable/debian
-          {{ ansible_facts.distribution_release }} main
-        filename: tailscale
+      ansible.builtin.deb822_repository:
+        name: tailscale
+        uris: https://pkgs.tailscale.com/stable/debian
+        suites: "{{ ansible_facts.distribution_release }}"
+        components: main
+        signed_by: "https://pkgs.tailscale.com/stable/debian/{{ ansible_facts.distribution_release }}.noarmor.gpg"
+
+    # Tailscale's install script writes this; left in place, apt sees the repo twice.
+    - name: Remove the install script's apt source
+      ansible.builtin.file:
+        path: /etc/apt/sources.list.d/tailscale.list
+        state: absent
 
     - name: Install Tailscale
       ansible.builtin.apt:
@@ -54,10 +56,9 @@
 
     - name: Join the tailnet
       ansible.builtin.command: >-
-        tailscale up
+        tailscale up --reset
         --login-server {{ headscale_url }}
         --authkey {{ tailscale_authkey }}
-        --advertise-tags={{ tailscale_tags | default('') }}
         --advertise-routes={{ tailscale_routes | default('') }}
         --accept-dns=false
       when: tailscale_status.rc != 0
