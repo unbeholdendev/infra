@@ -33,6 +33,7 @@
     - name: Install Tailscale
       ansible.builtin.apt:
         name: tailscale
+        update_cache: true
 
     - name: Enable IP forwarding for subnet routes
       ansible.posix.sysctl:
