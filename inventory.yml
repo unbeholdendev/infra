@@ -16,7 +16,7 @@ all:
     vps:
       hosts:
         vps-france:  { ansible_host: 92.119.127.234 }
-        vps-germany: { ansible_host: 89.58.40.247 }
+        giran: { ansible_host: 89.58.40.247 }
       vars:
         ansible_user: pycan
     work:

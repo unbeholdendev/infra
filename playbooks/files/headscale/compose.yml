@@ -1,0 +1,22 @@
+# Reference copy of the raw compose in Dokploy. Not deployed; update by hand.
+services:
+  headscale:
+    image: docker.io/headscale/headscale:v0.29.4
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /var/run/headscale
+    ports:
+      - "3478:3478/udp"
+    volumes:
+      - /home/pycan/headscale/config:/etc/headscale:ro
+      - /home/pycan/headscale/lib:/var/lib/headscale
+    command: serve
+    healthcheck:
+      test: ["CMD", "headscale", "health"]
+    networks:
+      - dokploy-network
+
+networks:
+  dokploy-network:
+    external: true

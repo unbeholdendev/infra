@@ -1,0 +1,28 @@
+- name: Deploy Headscale config
+  hosts: giran
+  gather_facts: false
+
+  vars:
+    headscale_dir: /home/pycan/headscale/config
+
+  tasks:
+    - name: Install config files
+      ansible.builtin.copy:
+        src: "headscale/{{ item }}"
+        dest: "{{ headscale_dir }}/{{ item }}"
+        mode: "0644"
+      loop:
+        - config.yaml
+        - policy.hujson
+      notify: Restart headscale
+
+  handlers:
+    # Dokploy owns the compose project and names the container, so find it by service label.
+    - name: Restart headscale
+      ansible.builtin.shell:
+        cmd: >-
+          set -o pipefail;
+          docker ps -q --filter label=com.docker.compose.service=headscale
+          | xargs -r docker restart
+        executable: /bin/bash
+      changed_when: true
