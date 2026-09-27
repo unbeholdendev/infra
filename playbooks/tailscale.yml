@@ -62,7 +62,17 @@
         --login-server {{ headscale_url }}
         --authkey {{ tailscale_authkey }}
         --advertise-routes={{ tailscale_routes | default('') }}
+        --hostname {{ inventory_hostname }}
+        --accept-routes
         --accept-dns=false
       when: tailscale_status.rc != 0
+      register: tailscale_up
+      failed_when: false
       no_log: true
       changed_when: true
+
+    # no_log above hides the key, and the error with it.
+    - name: Report a failed join
+      ansible.builtin.fail:
+        msg: "{{ tailscale_up.stderr }}"
+      when: tailscale_up.rc | default(0) != 0
