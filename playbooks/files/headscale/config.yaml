@@ -361,10 +361,7 @@ dns:
   # Extra DNS records
   # so far only A and AAAA records are supported (on the tailscale side)
   # See: https://headscale.net/stable/ref/dns/
-  extra_records:
-    - name: "cal.ts.unbeholden.dev"
-      type: "A"
-      value: "192.168.4.12"
+  extra_records: []
   #
   #   # you can also put it in one line
   #   - { name: "prometheus.myvpn.example.com", type: "A", value: "100.64.0.3" }
