@@ -61,9 +61,6 @@
         tailscale up --reset
         --login-server {{ headscale_url }}
         --authkey {{ tailscale_authkey }}
-        --advertise-routes={{ tailscale_routes | default('') }}
-        --hostname {{ inventory_hostname }}
-        --accept-routes
         --accept-dns=false
       when: tailscale_status.rc != 0
       register: tailscale_up
@@ -76,3 +73,13 @@
       ansible.builtin.fail:
         msg: "{{ tailscale_up.stderr }}"
       when: tailscale_up.rc | default(0) != 0
+
+    # Always applied: tailscale set does nothing when the settings already match.
+    - name: Apply Tailscale settings
+      ansible.builtin.command: >-
+        tailscale set
+        --advertise-routes={{ tailscale_routes | default('') }}
+        --hostname {{ inventory_hostname }}
+        --accept-routes
+        --accept-dns=false
+      changed_when: false
