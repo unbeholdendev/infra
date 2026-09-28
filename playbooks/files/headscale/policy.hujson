@@ -7,9 +7,16 @@
     "aden": "192.168.4.12/32"
   },
   "autoApprovers": {
-    "routes": { "192.168.4.12/32": ["tag:gludio"] }
+    "routes": {
+      "192.168.2.0/24": ["tag:gludio"],
+      "192.168.3.0/24": ["tag:gludio"],
+      "192.168.4.0/24": ["tag:gludio"],
+      "192.168.5.0/24": ["tag:gludio"],
+      "192.168.99.0/24": ["tag:gludio"]
+    }
   },
   "acls": [
-    { "action": "accept", "src": ["tag:giran"], "dst": ["aden:443"] }
+    { "action": "accept", "src": ["tag:giran"], "dst": ["aden:443"] },
+    { "action": "accept", "src": ["unbeholden@"], "dst": ["*:*"] }
   ]
 }

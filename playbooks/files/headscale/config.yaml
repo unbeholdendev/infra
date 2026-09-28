@@ -331,11 +331,11 @@ dns:
 
   # Whether to use the local DNS settings of a node or override the local DNS
   # settings (default) and force the use of Headscale's DNS configuration.
-  override_local_dns: false
+  override_local_dns: true
 
   # List of DNS servers to expose to clients.
   nameservers:
-    global: []
+    global: [192.168.4.1]
      #  - 1.1.1.1
      #  - 1.0.0.1
      #  - 2606:4700:4700::1111
