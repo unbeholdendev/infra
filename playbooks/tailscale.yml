@@ -35,12 +35,15 @@
         name: tailscale
         update_cache: true
 
-    - name: Enable IP forwarding for subnet routes
+    - name: Enable IP forwarding for subnet routes and exit nodes
       ansible.posix.sysctl:
-        name: net.ipv4.ip_forward
+        name: "{{ item }}"
         value: "1"
         sysctl_file: /etc/sysctl.d/99-tailscale.conf
-      when: tailscale_routes is defined
+      loop:
+        - net.ipv4.ip_forward
+        - net.ipv6.conf.all.forwarding
+      when: tailscale_routes is defined or tailscale_exit_node is defined
 
     - name: Read Tailscale state
       ansible.builtin.command: tailscale status
@@ -79,6 +82,7 @@
       ansible.builtin.command: >-
         tailscale set
         --advertise-routes={{ tailscale_routes | default('') }}
+        --advertise-exit-node={{ tailscale_exit_node | default(false) }}
         --hostname {{ inventory_hostname }}
         --accept-routes
         --accept-dns=false

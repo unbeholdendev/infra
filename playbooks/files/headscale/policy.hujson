@@ -13,7 +13,8 @@
       "192.168.4.0/24": ["tag:gludio"],
       "192.168.5.0/24": ["tag:gludio"],
       "192.168.99.0/24": ["tag:gludio"]
-    }
+    },
+    "exitNode": ["tag:gludio"]
   },
   "acls": [
     { "action": "accept", "src": ["tag:giran"], "dst": ["aden:7233"] },
