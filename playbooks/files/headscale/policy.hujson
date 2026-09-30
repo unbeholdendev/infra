@@ -17,7 +17,7 @@
     "exitNode": ["tag:gludio"]
   },
   "acls": [
-    { "action": "accept", "src": ["tag:giran"], "dst": ["aden:7233", "aden:3000", "aden:222"] },
+    { "action": "accept", "src": ["tag:giran"], "dst": ["aden:7233", "aden:3000", "aden:222", "aden:5123"] },
     { "action": "accept", "src": ["unbeholden@"], "dst": ["*:*"] }
   ]
 }
