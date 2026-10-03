@@ -17,7 +17,15 @@
     "exitNode": ["tag:gludio"]
   },
   "acls": [
-    { "action": "accept", "src": ["tag:giran"], "dst": ["aden:7233", "aden:3000", "aden:222", "aden:5123", "aden:3123"] },
+    { "action": "accept", "src": ["tag:giran"], "dst": [
+      "aden:7233", // lnurl
+      "aden:3000", // forgejo http
+      "aden:222",  // forgejo ssh
+      "aden:5123", // ntfy
+      "aden:3123", // umami
+      "aden:4123", // lofik
+      "aden:8472", // calrs
+    ] },
     { "action": "accept", "src": ["unbeholden@"], "dst": ["*:*"] }
   ]
 }
