@@ -1,0 +1,102 @@
+- name: Bootstrap a fresh Debian host
+  hosts: "{{ target | default([]) }}"
+
+  vars:
+    ansible_user: root
+
+  vars_prompt:
+    - name: admin_user
+      prompt: Login user to create
+      private: false
+
+  tasks:
+    - name: Refuse to run without a distribution key
+      ansible.builtin.assert:
+        that: distribution_key_files | length > 0
+        fail_msg: keys/distribution/ holds no public key.
+        quiet: true
+
+    - name: Upgrade all packages
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: dist
+
+    # Before sshd hardening: root can no longer log in once that is applied.
+    - name: Check whether the upgrade needs a reboot
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: reboot_required
+
+    - name: Reboot
+      ansible.builtin.reboot:
+      when: reboot_required.stat.exists
+
+    - name: Install base packages
+      ansible.builtin.apt:
+        name: [sudo, nftables, unattended-upgrades]
+
+    - name: Create login user
+      ansible.builtin.user:
+        name: "{{ admin_user }}"
+        shell: /bin/bash
+
+    - name: Give login user passwordless sudo
+      ansible.builtin.copy:
+        content: "{{ admin_user }} ALL=(ALL) NOPASSWD:ALL\n"
+        dest: "/etc/sudoers.d/{{ admin_user }}"
+        mode: "0440"
+        validate: visudo -cf %s
+
+    - name: Set authorized_keys to distribution + admin keys
+      ansible.posix.authorized_key:
+        user: "{{ admin_user }}"
+        exclusive: true
+        key: |
+          {% for f in distribution_key_files + admin_key_files %}{{ lookup('file', f) }}
+          {% endfor %}
+
+    - name: Install firewall rules
+      ansible.builtin.copy:
+        src: "nftables/{{ inventory_hostname }}.conf"
+        dest: /etc/nftables.conf
+        mode: "0755"
+        validate: nft -c -f %s
+      notify: Reload nftables
+
+    - name: Enable nftables
+      ansible.builtin.systemd_service:
+        name: nftables
+        enabled: true
+        state: started
+
+    - name: Enable unattended upgrades with reboot
+      ansible.builtin.copy:
+        content: |
+          APT::Periodic::Update-Package-Lists "1";
+          APT::Periodic::Unattended-Upgrade "1";
+          Unattended-Upgrade::Automatic-Reboot "true";
+          Unattended-Upgrade::Automatic-Reboot-Time "04:00";
+        dest: /etc/apt/apt.conf.d/20auto-upgrades
+        mode: "0644"
+
+    - name: Disable root and password login
+      ansible.builtin.copy:
+        content: |
+          PermitRootLogin no
+          PasswordAuthentication no
+          KbdInteractiveAuthentication no
+        dest: /etc/ssh/sshd_config.d/10-hardening.conf
+        mode: "0644"
+        validate: sshd -t -f %s
+      notify: Reload sshd
+
+  handlers:
+    - name: Reload nftables
+      ansible.builtin.systemd_service:
+        name: nftables
+        state: reloaded
+
+    - name: Reload sshd
+      ansible.builtin.systemd_service:
+        name: ssh
+        state: reloaded

@@ -15,7 +15,7 @@ all:
         rune: { ansible_host: 192.168.4.10, ansible_user: root }
     vps:
       hosts:
-        schuttgart: { ansible_host: 92.119.127.234 }
+        schuttgart: { ansible_host: 92.119.127.234, ansible_user: unbeholden }
         giran: { ansible_host: 89.58.40.247 }
       vars:
         ansible_user: pycan
