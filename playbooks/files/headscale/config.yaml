@@ -16,7 +16,7 @@ server_url: https://hs.unbeholden.dev
 #
 # For production:
 # listen_addr: 0.0.0.0:8080
-listen_addr: 0.0.0.0:8080
+listen_addr: 0.0.0.0:443
 
 # Address to listen to /metrics and /debug, you may want
 # to keep this endpoint private to your internal network
@@ -92,7 +92,7 @@ derp:
   server:
     # If enabled, runs the embedded DERP server and merges it into the rest of the DERP config
     # The Headscale server_url defined above MUST be using https, DERP requires TLS to be in place
-    enabled: false
+    enabled: true
 
     # Region ID to use for the embedded DERP server.
     # The local DERP prevails if the region ID collides with other region ID coming from
@@ -123,8 +123,7 @@ derp:
 
     # For better connection stability (especially when using an Exit-Node and DNS is not working),
     # it is possible to optionally add the public IPv4 and IPv6 address to the Derp-Map using:
-    ipv4: 198.51.100.1
-    ipv6: 2001:db8::1
+    ipv4: 92.119.127.234
 
   # List of externally available DERP maps encoded in JSON
   urls:
@@ -259,7 +258,7 @@ acme_url: https://acme-v02.api.letsencrypt.org/directory
 acme_email: ""
 
 # Domain name to request a TLS certificate for:
-tls_letsencrypt_hostname: ""
+tls_letsencrypt_hostname: hs.unbeholden.dev
 
 # Path to store certificates and metadata needed by
 # letsencrypt
@@ -269,7 +268,7 @@ tls_letsencrypt_cache_dir: /var/lib/headscale/cache
 # Type of ACME challenge to use, currently supported types:
 # HTTP-01 or TLS-ALPN-01
 # See: https://headscale.net/stable/ref/tls/
-tls_letsencrypt_challenge_type: HTTP-01
+tls_letsencrypt_challenge_type: TLS-ALPN-01
 # When HTTP-01 challenge is chosen, letsencrypt must set up a
 # verification endpoint, and it will be listening on:
 # :http = port 80

@@ -1,28 +1,44 @@
-- name: Deploy Headscale config
-  hosts: giran
+- name: Deploy Headscale
+  hosts: schuttgart
   gather_facts: false
+  become: true
 
   vars:
-    headscale_dir: /home/pycan/headscale/config
+    headscale_version: 0.29.4
+    headscale_sha256: 1f65364716ae1fcc3845b1a65a47583469022e9c6f194dfdfeb25403f89f0841
+    headscale_deb: "/var/cache/headscale_{{ headscale_version }}_linux_amd64.deb"
 
   tasks:
+    - name: Download Headscale
+      ansible.builtin.get_url:
+        url: "https://github.com/juanfont/headscale/releases/download/v{{ headscale_version }}/headscale_{{ headscale_version }}_linux_amd64.deb"
+        dest: "{{ headscale_deb }}"
+        checksum: "sha256:{{ headscale_sha256 }}"
+        mode: "0644"
+
+    - name: Install Headscale
+      ansible.builtin.apt:
+        deb: "{{ headscale_deb }}"
+      notify: Restart headscale
+
     - name: Install config files
       ansible.builtin.copy:
         src: "headscale/{{ item }}"
-        dest: "{{ headscale_dir }}/{{ item }}"
+        dest: "/etc/headscale/{{ item }}"
         mode: "0644"
       loop:
         - config.yaml
         - policy.hujson
       notify: Restart headscale
 
+    - name: Enable headscale
+      ansible.builtin.systemd_service:
+        name: headscale
+        enabled: true
+        state: started
+
   handlers:
-    # Dokploy owns the compose project and names the container, so find it by service label.
     - name: Restart headscale
-      ansible.builtin.shell:
-        cmd: >-
-          set -o pipefail;
-          docker ps -q --filter label=com.docker.compose.service=headscale
-          | xargs -r docker restart
-        executable: /bin/bash
-      changed_when: true
+      ansible.builtin.systemd_service:
+        name: headscale
+        state: restarted
