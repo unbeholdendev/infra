@@ -25,6 +25,7 @@
       "aden:3123", // umami
       "aden:4123", // lofik
       "aden:8472", // calrs
+      "aden:5637", // book
     ] },
     { "action": "accept", "src": ["unbeholden@"], "dst": ["*:*"] }
   ]
