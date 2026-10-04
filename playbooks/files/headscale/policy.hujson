@@ -1,6 +1,6 @@
 {
   "tagOwners": {
-    "tag:gludio": ["unbeholden@"],
+    "tag:router": ["unbeholden@"],
     "tag:giran": ["unbeholden@"]
   },
   "hosts": {
@@ -8,13 +8,10 @@
   },
   "autoApprovers": {
     "routes": {
-      "192.168.2.0/24": ["tag:gludio"],
-      "192.168.3.0/24": ["tag:gludio"],
-      "192.168.4.0/24": ["tag:gludio"],
-      "192.168.5.0/24": ["tag:gludio"],
-      "192.168.99.0/24": ["tag:gludio"]
+      "192.168.4.0/24": ["tag:router"],
+      "192.168.5.2/32": ["tag:router"]
     },
-    "exitNode": ["tag:gludio"]
+    "exitNode": ["tag:router"]
   },
   "acls": [
     { "action": "accept", "src": ["tag:giran"], "dst": [

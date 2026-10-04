@@ -5,7 +5,6 @@ all:
         goddard: { ansible_host: 192.168.4.11 }
         aden: { ansible_host: 192.168.4.12 }
         oren: { ansible_host: 192.168.4.13 }
-        gludio: { ansible_host: 192.168.4.14 }
         gludin: { ansible_host: 192.168.4.15 }
         heine: { ansible_host: 192.168.4.16 }
       vars:
@@ -36,5 +35,4 @@ all:
         oren:
     tailscale_nodes:
       hosts:
-        gludio:
         giran:
