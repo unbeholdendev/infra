@@ -24,6 +24,13 @@
       "aden:8472", // calrs
       "aden:5637", // book
     ] },
+    { "action": "accept", "src": ["amberdust@"], "dst": [
+      "aden:443",             // cal, vw via the proxy
+      "aden:2283",            // immich
+      "192.168.5.2:445",      // truenas smb
+      "192.168.4.1:53",       // tailnet DNS
+      "autogroup:internet:*", // exit node
+    ] },
     { "action": "accept", "src": ["unbeholden@"], "dst": ["*:*"] }
   ]
 }
