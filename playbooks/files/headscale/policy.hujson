@@ -23,6 +23,7 @@
       "aden:4123", // lofik
       "aden:8472", // calrs
       "aden:5637", // book
+      "aden:5233", // radicale via its own proxy listener
     ] },
     { "action": "accept", "src": ["amberdust@"], "dst": [
       "aden:443",             // cal, vw via the proxy
