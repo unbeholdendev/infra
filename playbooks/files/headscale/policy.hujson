@@ -29,7 +29,7 @@
       "aden:443",             // cal, vw via the proxy
       "192.168.5.2:30041",    // immich
       "192.168.5.2:445",      // truenas smb
-      "192.168.4.1:53",       // tailnet DNS
+      "100.64.0.1:53",        // tailnet DNS
       "autogroup:internet:*", // exit node
     ] },
     { "action": "accept", "src": ["unbeholden@"], "dst": ["*:*"] }
