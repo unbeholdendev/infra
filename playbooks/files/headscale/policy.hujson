@@ -9,7 +9,8 @@
   "autoApprovers": {
     "routes": {
       "192.168.4.0/24": ["tag:router"],
-      "192.168.5.2/32": ["tag:router"]
+      "192.168.5.2/32": ["tag:router"],
+      "192.168.6.0/24": ["tag:router"]
     },
     "exitNode": ["tag:router"]
   },
