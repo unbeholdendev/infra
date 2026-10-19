@@ -1,5 +1,5 @@
 - name: Converge authorized_keys
-  hosts: lxc:physical:vps
+  hosts: lxc:physical:vps:truenas
   tasks:
     - name: Refuse to run without a distribution key
       ansible.builtin.assert:
