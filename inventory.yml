@@ -12,6 +12,7 @@ all:
     physical:
       hosts:
         rune: { ansible_host: 192.168.6.2, ansible_user: root }
+        dion: { ansible_host: 192.168.6.3, ansible_user: root }
     vps:
       hosts:
         schuttgart: { ansible_host: 92.119.127.234, ansible_user: unbeholden }
