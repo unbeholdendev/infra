@@ -7,6 +7,7 @@ all:
         oren: { ansible_host: 192.168.4.13 }
         gludin: { ansible_host: 192.168.4.15 }
         heine: { ansible_host: 192.168.4.16 }
+        pdm: { ansible_host: 192.168.6.4 }
       vars:
         ansible_user: root
     physical:
