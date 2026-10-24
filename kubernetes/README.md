@@ -7,15 +7,22 @@ resources live in `apps/homepage` and reconcile separately, with readiness check
 ## MetalLB
 
 [`infrastructure/metallb`](infrastructure/metallb/) installs MetalLB and reserves
-`192.168.4.200` for a future proxy LoadBalancer Service. The controllers must be
-ready before Flux applies the pool configuration. This does not expose Homepage
-or change DNS; see that directory's README for prerequisites and verification.
+`192.168.4.200` for the proxy LoadBalancer Service. The controllers must be
+ready before Flux applies the pool configuration. See that directory's README
+for prerequisites and verification.
+
+## Traefik
+
+[`infrastructure/traefik`](infrastructure/traefik/) exposes HTTP on
+`192.168.4.200:80` and routes `dashboard.home.unbeholden.dev` to Homepage.
+See its README for a DNS-independent test before changing AdGuard. No HTTPS,
+DNS rewrite or Caddy migration is included yet.
 
 ## Homepage
 
 Homepage v2.7.0 runs as one non-root pod with no Kubernetes API token, discovery
-permissions, secrets or persistent storage. The only Service is ClusterIP:
-there is no ingress, NodePort, LoadBalancer, host port or DNS change yet.
+permissions, secrets or persistent storage. Its Service stays ClusterIP;
+a Traefik Ingress provides hostname-based HTTP access through the proxy.
 The pod should schedule on the worker while the control-plane taint remains.
 
 Edit `apps/homepage/config/services.yaml` for links and `settings.yaml` for page
@@ -24,10 +31,10 @@ Deployment's volume reference and roll the pod. All expected config files are
 provided, mounted read-only, and logs go to stdout instead of a writable config
 volume. No container socket or Kubernetes discovery integration is enabled.
 
-After merging, run these on the laptop:
+Flux deploys merges automatically. For status and optional local access, run
+these on the laptop:
 
 ```sh
-nix shell nixpkgs#fluxcd --command flux reconcile kustomization flux-system --with-source --kubeconfig="$HOME/talos/dion-v2/kubeconfig"
 nix shell nixpkgs#fluxcd --command flux get kustomizations --kubeconfig="$HOME/talos/dion-v2/kubeconfig"
 kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n homepage get pods -o wide
 kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n homepage port-forward service/homepage 3000:3000
@@ -39,10 +46,10 @@ If the Deployment is still starting, wait for its pod to become Ready first.
 
 `HOMEPAGE_ALLOWED_HOSTS` includes the pod IP for probes and the planned
 `dashboard.home.unbeholden.dev` hostname. Homepage also allows `localhost:3000`
-and `127.0.0.1:3000` by default. This check is not authentication. TLS, proxying,
-and LAN/Tailscale access at the final hostname are separate work; Caddy and
-Radicale remain unchanged. The starter page contains links only, with no widget
-credentials or application authentication.
+and `127.0.0.1:3000` by default. This check is not authentication. TLS and the
+exact AdGuard rewrite are separate work; Caddy and Radicale remain unchanged.
+The starter page contains links only, with no widget credentials or application
+authentication.
 
 For failures, inspect `kubectl -n homepage describe pod` and `kubectl -n homepage
 logs deployment/homepage`, using the same kubeconfig. A Flux Kustomization may
@@ -59,6 +66,6 @@ Checked against the current official documentation and v2.7.0 source:
 - [Flux Kustomizations](https://fluxcd.io/flux/components/kustomize/kustomizations/)
 
 The upstream Kubernetes example includes discovery RBAC, a ServiceAccount token,
-and an Ingress. Those are omitted because this deployment only serves static
-links over port-forwarding. Its mutable `latest` image tag is replaced with a
-release pin.
+and an Ingress. Discovery permissions are omitted because this deployment only
+serves static links. The Ingress explicitly selects Traefik, and the mutable
+`latest` image tag is replaced with a release pin.

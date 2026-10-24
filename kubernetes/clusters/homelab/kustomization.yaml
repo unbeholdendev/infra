@@ -4,3 +4,4 @@ resources:
   - flux-system
   - homepage.yaml
   - metallb.yaml
+  - traefik.yaml
