@@ -1,0 +1,10 @@
+- Homelab:
+    - Dion:
+        href: https://192.168.6.3:8006
+        description: Proxmox host
+    - Forgejo:
+        href: https://git.unbeholden.dev
+        description: Git repositories
+    - Radicale:
+        href: https://cal.home.unbeholden.dev
+        description: Calendars and contacts

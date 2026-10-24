@@ -8,6 +8,11 @@ Ansible playbooks for the fleet, OpenTofu for VM provisioning, and backup jobs.
 Run OpenTofu from the laptop; Talos setup stays manual. See its README for state,
 credentials and the plan/apply workflow.
 
+## Kubernetes
+
+[`kubernetes`](kubernetes/) holds the Flux-managed homelab workloads, starting
+with Homepage. See its README for reconciliation and local access commands.
+
 ## netcup snapshots
 
 `.forgejo/workflows/netcup-snapshot.yml` snapshots the whole of `vps-germany`
