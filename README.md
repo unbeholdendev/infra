@@ -1,6 +1,12 @@
 # infra
 
-Ansible playbooks for the fleet, and the jobs that back it up.
+Ansible playbooks for the fleet, OpenTofu for VM provisioning, and backup jobs.
+
+## Dion Talos VMs
+
+[`opentofu/dion`](opentofu/dion/) defines one control-plane VM and one worker.
+Run OpenTofu from the laptop; Talos setup stays manual. See its README for state,
+credentials and the plan/apply workflow.
 
 ## netcup snapshots
 
