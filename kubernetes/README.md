@@ -1,8 +1,15 @@
 # Homelab Kubernetes
 
 Flux watches `clusters/homelab` on `main`. Its root Kustomization includes Flux
-itself and the Homepage reconciliation object. Homepage's resources live in
-`apps/homepage` and reconcile separately, with readiness checks.
+itself and reconciliation objects for workloads and infrastructure. Homepage's
+resources live in `apps/homepage` and reconcile separately, with readiness checks.
+
+## MetalLB
+
+[`infrastructure/metallb`](infrastructure/metallb/) installs MetalLB and reserves
+`192.168.4.200` for a future proxy LoadBalancer Service. The controllers must be
+ready before Flux applies the pool configuration. This does not expose Homepage
+or change DNS; see that directory's README for prerequisites and verification.
 
 ## Homepage
 
