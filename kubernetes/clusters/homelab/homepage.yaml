@@ -6,6 +6,7 @@ metadata:
 spec:
   dependsOn:
     - name: traefik
+    - name: cert-issuers
   interval: 10m
   path: ./kubernetes/apps/homepage
   prune: true
@@ -13,4 +14,4 @@ spec:
     kind: GitRepository
     name: flux-system
   wait: true
-  timeout: 3m
+  timeout: 20m

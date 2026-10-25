@@ -3,4 +3,4 @@ kind: Kustomization
 resources:
   - staging.yaml
   - spaceship-credentials.sops.yaml
-  - dashboard-staging.yaml
+  - production.yaml

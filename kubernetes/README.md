@@ -28,15 +28,15 @@ DNS rewrite or Caddy migration is included yet.
 ## Certificates
 
 [`infrastructure/cert-manager`](infrastructure/cert-manager/) installs
-cert-manager, the community Spaceship DNS-01 webhook and a Let's Encrypt staging
-issuer. Encrypted Spaceship credentials and a temporary staging Certificate test
-DNS-01 issuance without enabling HTTPS. See its README for verification and the
-next steps.
+cert-manager, the community Spaceship DNS-01 webhook and Let's Encrypt staging
+and production issuers. Homepage requests its production certificate using the
+encrypted Spaceship credentials; HTTPS routing remains a separate step after
+issuance. See its README for verification and cleanup of the staging test.
 
 ## Homepage
 
 Homepage v2.7.0 runs as one non-root pod with no Kubernetes API token, discovery
-permissions, secrets or persistent storage. Its Service stays ClusterIP;
+permissions, mounted secrets or persistent storage. Its Service stays ClusterIP;
 a Traefik Ingress provides hostname-based HTTP access through the proxy.
 The pod should schedule on the worker while the control-plane taint remains.
 

@@ -4,7 +4,8 @@ Installs the official cert-manager chart **v1.21.3** and the community Spaceship
 webhook chart/app **0.1.3**. Flux orders reconciliation:
 
 ```text
-cert-manager → spaceship-webhook → cert-issuers
+cert-manager → spaceship-webhook → cert-issuers → homepage
+                                      traefik ↗
 ```
 
 The first stage installs cert-manager's CRDs, controller, admission webhook and
@@ -12,11 +13,15 @@ CA injector. The second adds a DNS-01 solver as an aggregated Kubernetes API.
 Its internal serving certificates are issued by cert-manager using a private,
 self-signed CA; those do not contact Let's Encrypt or Spaceship.
 
-The final stage registers `letsencrypt-staging` with `acme@unbeholden.dev`.
-It selects only `dashboard.home.unbeholden.dev`. An encrypted Spaceship Secret
-and temporary `dashboard-staging` Certificate now test the full DNS-01 flow.
-The certificate is stored as `cert-manager/dashboard-staging-tls`, not connected
-to Traefik. No production issuer, Traefik TLS change or DNS rewrite is included.
+The issuers stage registers `letsencrypt-staging` and `letsencrypt-production`
+with `acme@unbeholden.dev`. Both select only `dashboard.home.unbeholden.dev` and
+use the encrypted Spaceship Secret. The staging issuer remains for future tests;
+there is no active staging Certificate.
+
+Homepage requests a production certificate in `homepage/homepage-tls`, separate
+from the staging test Secret and ACME account keys. Its Flux Kustomization waits
+for the issuers and allows twenty minutes for issuance. This stage does not
+change Traefik's HTTP-only route; attach the certificate only after it is Ready.
 
 ## Security and DNS
 
@@ -53,38 +58,42 @@ On the laptop:
 nix shell nixpkgs#fluxcd --command flux get kustomizations --kubeconfig="$HOME/talos/dion-v2/kubeconfig"
 kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n cert-manager get helmreleases,pods,certificates,issuers
 kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" get apiservice v1alpha1.cert-manager-webhook-spaceship.hjwylde.github.io
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" get clusterissuer letsencrypt-staging
+kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" get clusterissuers letsencrypt-staging letsencrypt-production
 ```
 
 Expect both HelmReleases Ready, four running controller/webhook pods, two Ready
 internal Certificates and two Ready internal Issuers. A completed startup check
-Job pod may also appear. The APIService should report Available and the staging
-ClusterIssuer Ready. The temporary dashboard certificate may take a few minutes
-to issue; `cert-issuers` waits up to ten minutes for readiness.
-
-Check the actual DNS-01 test:
+Job pod may also appear. The APIService should report Available and both
+ClusterIssuers Ready. Production issuance can take several minutes for DNS
+propagation; check the Certificate rather than retrying production requests.
 
 ```sh
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n cert-manager wait --for=condition=Ready certificate/dashboard-staging --timeout=10m
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n cert-manager get certificate dashboard-staging
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n cert-manager get orders,challenges
+kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n homepage wait --for=condition=Ready certificate/homepage --timeout=20m
+kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n homepage get certificates,orders,challenges
 ```
 
-Expect the Certificate Ready and its ACME Order valid. The Challenge may already
-be gone after completion; if still present, it should be valid and no longer
-presented. Confirm Spaceship has removed the temporary TXT record at
-`_acme-challenge.dashboard.home.unbeholden.dev`. Leave unrelated records alone.
-If issuance fails, describe `certificate/dashboard-staging` and the relevant
-Order/Challenge without printing Secrets. DNS API access has real effects even
-though the certificate uses staging.
+Expect `homepage` Ready and its ACME Order valid. The Challenge may already be
+gone after completion; if still present, allow cleanup to finish. Confirm the
+public TXT record at `_acme-challenge.dashboard.home.unbeholden.dev` is removed.
+Leave unrelated records alone. If issuance fails, describe `certificate/homepage`
+and the relevant Order/Challenge without printing Secrets. A Ready issuer alone
+only proves ACME account registration, not certificate issuance.
 
-Staging certificates are not browser-trusted. Request production TLS and change
-the exact AdGuard rewrite only after this test succeeds; preserve Caddy,
-Radicale and the wildcard rewrite. Remove the temporary Certificate manifest
-after the test to stop its renewals; keep the staging issuer for future tests.
-cert-manager normally retains the generated TLS Secret when a Certificate is
-removed, so delete only `cert-manager/dashboard-staging-tls` after that manifest
-removal has reconciled.
+Once Ready, attach `homepage-tls` to the Ingress and expose HTTPS in a separate
+change. The exact AdGuard dashboard rewrite already points to `192.168.4.200`;
+keep Caddy, Radicale and the wildcard rewrite unchanged. No public inbound
+access is needed for issuance.
+
+The temporary staging Certificate manifest is removed, stopping its renewals.
+cert-manager normally retains the generated TLS Secret. Once Flux has removed
+the test Certificate, this command removes only its leftover test Secret:
+
+```sh
+kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n cert-manager delete secret dashboard-staging-tls --ignore-not-found
+```
+
+Keep the staging issuer and its account key for future tests. Do not delete the
+Spaceship credential or the production certificate/account Secrets.
 
 To diagnose failures, describe the failing resource and inspect the relevant
 pod logs with the same kubeconfig. Do not print Secrets while debugging.
