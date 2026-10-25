@@ -13,10 +13,10 @@ Its internal serving certificates are issued by cert-manager using a private,
 self-signed CA; those do not contact Let's Encrypt or Spaceship.
 
 The final stage registers `letsencrypt-staging` with `acme@unbeholden.dev`.
-It selects only `dashboard.home.unbeholden.dev`. No dashboard Certificate,
-Spaceship credential, production issuer, Traefik TLS change or DNS rewrite is
-included. The staging issuer can become Ready without Spaceship credentials;
-that proves account registration, not DNS-01 validation.
+It selects only `dashboard.home.unbeholden.dev`. An encrypted Spaceship Secret
+and temporary `dashboard-staging` Certificate now test the full DNS-01 flow.
+The certificate is stored as `cert-manager/dashboard-staging-tls`, not connected
+to Traefik. No production issuer, Traefik TLS change or DNS rewrite is included.
 
 ## Security and DNS
 
@@ -32,15 +32,16 @@ cert-manager's default cluster-resource namespace, `cert-manager`. No Secret
 listing or watching is needed. Its remaining RBAC allows Kubernetes delegated
 authentication and cert-manager to call the solver API.
 
-The later SOPS-encrypted Secret must contain `api-key` and `api-secret`. Use a
-separate Spaceship API credential with DNS Records Write permission, scoped to
-`unbeholden.dev` if Spaceship offers that restriction. The solver selector is
-routing configuration, not an API credential security boundary. The credential
-can change whatever DNS records its provider permissions allow.
+The [SOPS](../../SECRETS.md)-encrypted Secret contains `api-key` and `api-secret`.
+It reuses Caddy's Spaceship credential with DNS Records Write permission; do not
+revoke or rotate it without updating both consumers until Caddy is retired. The
+solver selector is routing configuration, not an API credential security
+boundary. The credential can change whatever DNS records its provider
+permissions allow.
 
 cert-manager uses public recursive resolvers `1.1.1.1:53` and `9.9.9.9:53` for
 DNS-01 self-checks, rather than AdGuard's private wildcard rewrite. It needs
-outbound TCP/UDP DNS to those resolvers and HTTPS to ACME; the solver later needs
+outbound TCP/UDP DNS to those resolvers and HTTPS to ACME; the solver needs
 HTTPS to `spaceship.dev`. No inbound Internet connection, public HTTP route or
 AdGuard change is needed to prove ownership using a public TXT record.
 
@@ -58,13 +59,32 @@ kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" get clusterissuer letsencr
 Expect both HelmReleases Ready, four running controller/webhook pods, two Ready
 internal Certificates and two Ready internal Issuers. A completed startup check
 Job pod may also appear. The APIService should report Available and the staging
-ClusterIssuer Ready. No dashboard certificate exists yet.
+ClusterIssuer Ready. The temporary dashboard certificate may take a few minutes
+to issue; `cert-issuers` waits up to ten minutes for readiness.
 
-These checks do not prove Spaceship API access or ACME challenge completion.
-Next add credentials through [SOPS](../../SECRETS.md), request a staging
-certificate and verify TXT creation/cleanup. Staging certificates are not
-browser-trusted. Request production TLS and change the exact AdGuard rewrite
-only after that test succeeds; preserve Caddy, Radicale and the wildcard rewrite.
+Check the actual DNS-01 test:
+
+```sh
+kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n cert-manager wait --for=condition=Ready certificate/dashboard-staging --timeout=10m
+kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n cert-manager get certificate dashboard-staging
+kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n cert-manager get orders,challenges
+```
+
+Expect the Certificate Ready and its ACME Order valid. The Challenge may already
+be gone after completion; if still present, it should be valid and no longer
+presented. Confirm Spaceship has removed the temporary TXT record at
+`_acme-challenge.dashboard.home.unbeholden.dev`. Leave unrelated records alone.
+If issuance fails, describe `certificate/dashboard-staging` and the relevant
+Order/Challenge without printing Secrets. DNS API access has real effects even
+though the certificate uses staging.
+
+Staging certificates are not browser-trusted. Request production TLS and change
+the exact AdGuard rewrite only after this test succeeds; preserve Caddy,
+Radicale and the wildcard rewrite. Remove the temporary Certificate manifest
+after the test to stop its renewals; keep the staging issuer for future tests.
+cert-manager normally retains the generated TLS Secret when a Certificate is
+removed, so delete only `cert-manager/dashboard-staging-tls` after that manifest
+removal has reconciled.
 
 To diagnose failures, describe the failing resource and inspect the relevant
 pod logs with the same kubeconfig. Do not print Secrets while debugging.

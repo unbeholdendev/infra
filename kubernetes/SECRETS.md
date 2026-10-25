@@ -53,9 +53,9 @@ After merging, Flux discovers the change automatically:
 nix shell nixpkgs#fluxcd --command flux get kustomizations --kubeconfig="$HOME/talos/dion-v2/kubeconfig"
 ```
 
-All should become Ready. No application credentials or encrypted workloads are
-added by this setup; the first real use will be Spaceship credentials. A live
-decryption test is still needed when that encrypted Secret is added.
+All should become Ready. Spaceship credentials are the first encrypted workload;
+the temporary staging Certificate tests live decryption and DNS-01 issuance.
+See [certificate management](infrastructure/cert-manager/) for verification.
 
 ## Recovery
 

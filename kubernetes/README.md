@@ -29,8 +29,9 @@ DNS rewrite or Caddy migration is included yet.
 
 [`infrastructure/cert-manager`](infrastructure/cert-manager/) installs
 cert-manager, the community Spaceship DNS-01 webhook and a Let's Encrypt staging
-issuer. It does not yet add Spaceship credentials, request a dashboard
-certificate or enable HTTPS. See its README for verification and the next steps.
+issuer. Encrypted Spaceship credentials and a temporary staging Certificate test
+DNS-01 issuance without enabling HTTPS. See its README for verification and the
+next steps.
 
 ## Homepage
 
