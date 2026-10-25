@@ -1,1 +1,8 @@
-title: Dashboard
+title: Homelab
+theme: dark
+color: slate
+headerStyle: clean
+iconStyle: flat
+hideVersion: true
+target: _self
+maxGroupColumns: 4

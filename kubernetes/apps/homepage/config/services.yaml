@@ -1,10 +1,124 @@
-- Homelab:
-    - Dion:
+- Network:
+    - OpenWrt:
+        icon: openwrt.png
+        href: http://192.168.1.1
+        description: Router
+    - AdGuard Home:
+        icon: adguard-home.png
+        href: http://192.168.1.1:8080
+        description: DNS and ad blocking
+    - Switch:
+        icon: mdi-switch
+        href: http://192.168.6.10
+        description: Network switch
+- Compute & storage:
+    - Proxmox · Rune:
+        icon: proxmox.png
+        href: https://192.168.6.2:8006
+        description: Virtual machines and containers
+    - Proxmox · Dion:
+        icon: proxmox.png
         href: https://192.168.6.3:8006
-        description: Proxmox host
+        description: Virtual machines and containers
+    - TrueNAS:
+        icon: truenas.png
+        href: http://192.168.5.2
+        description: Storage and apps
+    - Dokploy:
+        icon: dokploy.png
+        href: http://192.168.4.15:3000/
+        description: Application deployments
+    - Dockhand:
+        icon: dockhand.png
+        href: http://192.168.4.12:5412/
+        description: Container management
+- Media:
+    - Jellyfin:
+        icon: jellyfin.png
+        href: http://192.168.5.2:30013
+        description: Movies, shows and music
+    - Immich:
+        icon: immich.png
+        href: http://192.168.5.2:30041
+        description: Photos and videos
+    - slskd:
+        icon: slskd.png
+        href: http://192.168.5.2:30336
+        description: Soulseek downloads
+- Mail & scheduling:
+    - Stalwart:
+        icon: stalwart.png
+        href: https://mail.unbeholden.dev
+        description: Mail server
+    - Listmonk:
+        icon: listmonk.png
+        href: https://news.unbeholden.dev
+        description: Newsletters and mailing lists
+    - SMTP2GO:
+        icon: mdi-email-fast-outline
+        href: https://app-eu.smtp2go.com
+        description: Outbound mail delivery
+    - CalRS:
+        icon: mdi-calendar-clock
+        href: https://cal.unbeholden.dev
+        description: Scheduling
+- Development:
     - Forgejo:
-        href: https://git.unbeholden.dev
+        icon: forgejo.png
+        href: https://git.home.unbeholden.dev
         description: Git repositories
+    - GitHub:
+        icon: github.png
+        href: https://github.com/unbeholdendev
+        description: Profile and repositories
+    - Umami:
+        icon: umami.png
+        href: https://umami.unbeholden.dev
+        description: Web analytics
+    - ntfy:
+        icon: ntfy.png
+        href: https://ntfy.unbeholden.dev
+        description: Push notifications
+- Personal:
+    - Vaultwarden:
+        icon: vaultwarden.png
+        href: https://vw.home.unbeholden.dev
+        description: Password vault
     - Radicale:
+        icon: radicale.png
         href: https://cal.home.unbeholden.dev
         description: Calendars and contacts
+    - Invoice Ninja:
+        icon: invoice-ninja.png
+        href: http://192.168.4.12:8012/
+        description: Invoices and billing
+- Bitcoin:
+    - BTC RPC Explorer:
+        icon: bitcoin.png
+        href: http://192.168.4.12:3002/
+        description: Bitcoin node explorer
+    - Bitaxe:
+        icon: mdi-pickaxe
+        href: http://192.168.1.21
+        description: Bitcoin miner
+- Providers:
+    - Netcup:
+        icon: mdi-server
+        href: https://www.servercontrolpanel.de
+        description: VPS control panel
+    - RackNerd:
+        icon: mdi-server
+        href: https://ctrl.racknerd.com
+        description: VPS control panel
+    - Offsite backups:
+        icon: mdi-cloud-outline
+        href: "https://eu-north-1.console.aws.amazon.com/s3/buckets?region=eu-north-1#"
+        description: Amazon S3
+    - Spaceship:
+        icon: mdi-domain
+        href: https://www.spaceship.com/application/advanced-dns-application/manage/unbeholden.dev/
+        description: DNS management
+    - Hostinger:
+        icon: hostinger.png
+        href: https://hpanel.hostinger.com/domains
+        description: Domain management
