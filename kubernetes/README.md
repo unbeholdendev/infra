@@ -20,24 +20,24 @@ for prerequisites and verification.
 
 ## Traefik
 
-[`infrastructure/traefik`](infrastructure/traefik/) exposes HTTP on
-`192.168.4.200:80` and routes `dashboard.home.unbeholden.dev` to Homepage.
-See its README for a DNS-independent test before changing AdGuard. No HTTPS,
-DNS rewrite or Caddy migration is included yet.
+[`infrastructure/traefik`](infrastructure/traefik/) serves
+`https://dashboard.home.unbeholden.dev` on `192.168.4.200:443` and redirects
+HTTP to HTTPS. See its README for TLS tests from LAN and Tailscale. AdGuard's
+exact dashboard rewrite points to `.200`; Caddy and the wildcard stay unchanged.
 
 ## Certificates
 
 [`infrastructure/cert-manager`](infrastructure/cert-manager/) installs
 cert-manager, the community Spaceship DNS-01 webhook and Let's Encrypt staging
 and production issuers. Homepage requests its production certificate using the
-encrypted Spaceship credentials; HTTPS routing remains a separate step after
-issuance. See its README for verification and cleanup of the staging test.
+encrypted Spaceship credentials. Traefik uses the issued `homepage-tls` Secret
+for HTTPS. See its README for verification and cleanup of the staging test.
 
 ## Homepage
 
 Homepage v2.7.0 runs as one non-root pod with no Kubernetes API token, discovery
 permissions, mounted secrets or persistent storage. Its Service stays ClusterIP;
-a Traefik Ingress provides hostname-based HTTP access through the proxy.
+a Traefik Ingress provides hostname-based HTTPS access through the proxy.
 The pod should schedule on the worker while the control-plane taint remains.
 
 Edit `apps/homepage/config/services.yaml` for links and `settings.yaml` for page
@@ -61,8 +61,8 @@ If the Deployment is still starting, wait for its pod to become Ready first.
 
 `HOMEPAGE_ALLOWED_HOSTS` includes the pod IP for probes and the planned
 `dashboard.home.unbeholden.dev` hostname. Homepage also allows `localhost:3000`
-and `127.0.0.1:3000` by default. This check is not authentication. TLS and the
-exact AdGuard rewrite are separate work; Caddy and Radicale remain unchanged.
+and `127.0.0.1:3000` by default. This check is not authentication. HTTPS encrypts
+traffic but does not authenticate users; Caddy and Radicale remain unchanged.
 The starter page contains links only, with no widget credentials or application
 authentication.
 

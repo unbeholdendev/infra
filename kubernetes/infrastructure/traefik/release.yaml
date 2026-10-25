@@ -36,9 +36,13 @@ spec:
       kubernetesIngress:
         enabled: true
     ports:
-      websecure:
-        expose:
-          default: false
+      web:
+        http:
+          redirections:
+            entryPoint:
+              to: websecure
+              scheme: https
+              permanent: true
     service:
       annotations:
         metallb.io/address-pool: ingress

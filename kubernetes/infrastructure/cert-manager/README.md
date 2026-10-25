@@ -20,8 +20,8 @@ there is no active staging Certificate.
 
 Homepage requests a production certificate in `homepage/homepage-tls`, separate
 from the staging test Secret and ACME account keys. Its Flux Kustomization waits
-for the issuers and allows twenty minutes for issuance. This stage does not
-change Traefik's HTTP-only route; attach the certificate only after it is Ready.
+for the issuers and allows twenty minutes for issuance. Traefik uses this
+Secret for the dashboard's HTTPS route; cert-manager handles renewals.
 
 ## Security and DNS
 
@@ -79,10 +79,10 @@ Leave unrelated records alone. If issuance fails, describe `certificate/homepage
 and the relevant Order/Challenge without printing Secrets. A Ready issuer alone
 only proves ACME account registration, not certificate issuance.
 
-Once Ready, attach `homepage-tls` to the Ingress and expose HTTPS in a separate
-change. The exact AdGuard dashboard rewrite already points to `192.168.4.200`;
-keep Caddy, Radicale and the wildcard rewrite unchanged. No public inbound
-access is needed for issuance.
+Traefik consumes `homepage-tls` through the Ingress. Follow its
+[verification steps](../traefik/) to check the served certificate. The exact
+AdGuard dashboard rewrite points to `192.168.4.200`; keep Caddy, Radicale and the
+wildcard rewrite unchanged. No public inbound access is needed for issuance.
 
 The temporary staging Certificate manifest is removed, stopping its renewals.
 cert-manager normally retains the generated TLS Secret. Once Flux has removed
