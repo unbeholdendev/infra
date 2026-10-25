@@ -4,5 +4,5 @@ color: slate
 headerStyle: clean
 iconStyle: flat
 hideVersion: true
-target: _self
+target: _blank
 maxGroupColumns: 4
