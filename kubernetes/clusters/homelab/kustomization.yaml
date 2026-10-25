@@ -5,6 +5,7 @@ resources:
   - homepage.yaml
   - metallb.yaml
   - traefik.yaml
+  - cert-manager.yaml
 patches:
   - target:
       group: kustomize.toolkit.fluxcd.io

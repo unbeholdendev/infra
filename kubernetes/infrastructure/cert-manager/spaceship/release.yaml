@@ -1,0 +1,76 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: spaceship-webhook
+  namespace: cert-manager
+spec:
+  interval: 1h
+  url: https://hjwylde.github.io/cert-manager-webhook-spaceship
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: spaceship-webhook
+  namespace: cert-manager
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: cert-manager-webhook-spaceship
+      version: 0.1.3
+      sourceRef:
+        kind: HelmRepository
+        name: spaceship-webhook
+      interval: 1h
+  values:
+    fullnameOverride: spaceship-webhook
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        memory: 256Mi
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: Deployment
+              name: spaceship-webhook
+            patch: |-
+              - op: add
+                path: /spec/template/spec/securityContext
+                value:
+                  runAsNonRoot: true
+                  runAsUser: 65532
+                  runAsGroup: 65532
+                  seccompProfile:
+                    type: RuntimeDefault
+              - op: add
+                path: /spec/template/spec/containers/0/securityContext
+                value:
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  capabilities:
+                    drop:
+                      - ALL
+              - op: add
+                path: /spec/template/spec/containers/0/args/-
+                value: --secure-port=8443
+              - op: replace
+                path: /spec/template/spec/containers/0/ports/0/containerPort
+                value: 8443
+          - target:
+              kind: Role
+              name: spaceship-webhook:access-secret
+            patch: |-
+              - op: replace
+                path: /rules
+                value:
+                  - apiGroups:
+                      - ""
+                    resources:
+                      - secrets
+                    resourceNames:
+                      - spaceship-credentials
+                    verbs:
+                      - get
