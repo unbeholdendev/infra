@@ -4,6 +4,13 @@ Flux watches `clusters/homelab` on `main`. Its root Kustomization includes Flux
 itself and reconciliation objects for workloads and infrastructure. Homepage's
 resources live in `apps/homepage` and reconcile separately, with readiness checks.
 
+## Secrets
+
+[SOPS with age](SECRETS.md) keeps Secret values encrypted in Git. Create the
+private decryption Secret on the laptop before merging the Flux configuration.
+The public recipient is tracked; the private identity is backed up in
+Vaultwarden, without giving the cluster access to Vaultwarden.
+
 ## MetalLB
 
 [`infrastructure/metallb`](infrastructure/metallb/) installs MetalLB and reserves

@@ -5,3 +5,15 @@ resources:
   - homepage.yaml
   - metallb.yaml
   - traefik.yaml
+patches:
+  - target:
+      group: kustomize.toolkit.fluxcd.io
+      version: v1
+      kind: Kustomization
+    patch: |-
+      - op: add
+        path: /spec/decryption
+        value:
+          provider: sops
+          secretRef:
+            name: sops-age
