@@ -4,6 +4,9 @@ Flux watches `clusters/homelab` on `main`. Its root Kustomization includes Flux
 itself and reconciliation objects for workloads and infrastructure. Homepage's
 resources live in `apps/homepage` and reconcile separately, with readiness checks.
 
+For daily checks, logs, container shells and terms, see the
+[Talos + Kubernetes cheat sheet](CHEATSHEET.md).
+
 ## Secrets
 
 [SOPS with age](SECRETS.md) keeps Secret values encrypted in Git. Create the
