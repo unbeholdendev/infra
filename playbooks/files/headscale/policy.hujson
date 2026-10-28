@@ -17,8 +17,8 @@
   "acls": [
     { "action": "accept", "src": ["tag:giran"], "dst": [
       "aden:7233", // lnurl
-      "aden:3000", // forgejo http
-      "aden:222",  // forgejo ssh
+      "192.168.4.200:443",
+      "192.168.4.200:222",
       "aden:5123", // ntfy
       "aden:3123", // umami
       "aden:4123", // lofik

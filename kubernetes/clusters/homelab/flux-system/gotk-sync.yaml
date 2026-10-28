@@ -11,7 +11,7 @@ spec:
     branch: main
   secretRef:
     name: flux-system
-  url: ssh://git@git.unbeholden.dev:222/unbeholden/infra.git
+  url: ssh://git@git.home.unbeholden.dev:222/unbeholden/infra.git
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization

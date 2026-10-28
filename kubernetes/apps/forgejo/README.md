@@ -1,9 +1,10 @@
 # Private Forgejo
 
-This prepares Forgejo 16.0.6 at `git.home.unbeholden.dev` for LAN/Tailscale
-access. The Deployment stays at zero replicas until the source is stopped and
-its data restored. Merging does not change DNS, the old instance, Flux's Git
-source, client credentials or public proxy routes.
+Forgejo 16.0.6 runs at `git.home.unbeholden.dev` for LAN/Tailscale access, with
+one replica and Flux fetching from the private instance. DNS, client credential
+helpers, the live Flux Git Secret and public proxy routes need separate updates.
+The restore procedure below requires a temporary zero-replica post-render patch;
+do not run a replacement instance alongside the source.
 
 Flux installs the maintained Forgejo chart through an OCIRepository and
 HelmRelease in `release.yaml`. Chart 17.3.2 is pinned separately from the
@@ -17,6 +18,12 @@ that private IP for SSH on port `222`, forwarding to the container's port `22`.
 Both Services use MetalLB's `private-ingress` sharing key and `Cluster` traffic
 policy. No new IP, NodePort, WAN forward or Traefik TCP provider is needed.
 Keep the router's WAN forwards and public gateway routes away from `.200`.
+
+Giran retains tailnet access to `.200:443` and `.200:222` through Headscale's
+`tag:giran` grant. Applications on Giran must use `git.home.unbeholden.dev` so
+HTTPS certificate validation and Traefik routing work. The hostname must resolve
+to `.200`, reached through the tailnet subnet route. The IP-based HTTPS grant
+covers the shared Traefik listener, not only Forgejo. Do not proxy it publicly.
 
 ## Storage and process
 
@@ -61,15 +68,30 @@ No database or cache service is deployed. The chart also manages local cache,
 queue and session defaults; review the rendered inline configuration against any
 source customisations before startup. Do not put source secrets in chart values.
 
-The chart rejects `replicaCount: 0`. Its values request one replica, while a Flux
-post-render patch holds the actual Deployment at zero. Remove that Deployment
-patch to activate it after restore. This keeps chart schema validation enabled.
-A separate post-render patch disables SSH NodePort allocation, which the chart
-does not expose as a value; keep that patch.
+The chart rejects `replicaCount: 0`; its values request one replica. For a fresh
+restore, temporarily add this entry under the HelmRelease's
+`spec.postRenderers[0].kustomize.patches` before reconciliation:
 
-## Prepare after merge
+```yaml
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: forgejo
+  patch: |
+    - op: replace
+      path: /spec/replicas
+      value: 0
+```
 
-Run from this repository on the laptop, with the working homelab `KUBECONFIG`:
+Remove it to activate Forgejo after restore. This keeps chart schema validation
+enabled. The existing Service post-render patch disables SSH NodePort allocation,
+which the chart does not expose as a value; keep that patch.
+
+## Prepare a fresh restore
+
+Run from this repository on the laptop, with the working homelab `KUBECONFIG`
+and the temporary zero-replica patch in place:
 
 ```sh
 flux get kustomizations
@@ -241,10 +263,12 @@ Once validation passes:
    OAuth callbacks. Verify authenticated Git operations and a runner job.
    The netcup snapshot workflow needs its existing secret, variable and runner;
    it does not back up Forgejo's new storage.
-4. Remove the old public Forgejo HTTPS and SSH proxy routes, then remove only
-   `tag:giran`'s `aden:3000` and `aden:222` grants in the Headscale policy.
-   Apply that policy and verify public HTTPS, SSH and registry access no longer
-   reaches Forgejo. Preserve all unrelated proxy routes and grants.
+4. Remove the old public Forgejo HTTPS and SSH proxy routes. Apply the Headscale
+   policy, which replaces `tag:giran`'s `aden:3000` and `aden:222` grants with
+   `.200:443` and `.200:222`. On Giran, verify the private hostname resolves to
+   `.200` and HTTPS/API and SSH access work over the tailnet. Separately verify
+   public HTTPS, SSH and registry access no longer reaches Forgejo. Preserve all
+   unrelated proxy routes and grants.
 5. After the GitRepository has fetched the activation commit from the private
    instance, run `flux resume kustomization flux-system`, then
    `flux resume kustomization forgejo`. Verify both apply that revision, remain
