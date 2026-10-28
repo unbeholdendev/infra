@@ -9,7 +9,8 @@ Flux installs the maintained Forgejo chart through an OCIRepository and
 HelmRelease in `release.yaml`. Chart 17.3.2 is pinned separately from the
 application image, which stays at 16.0.6 to avoid a database upgrade during
 migration. The chart owns the Deployment, Services and Ingress; Kustomize owns
-the namespace, retained PV/PVC and Certificate. The restore pod stays manual.
+the namespace, retained PV/PVC and Certificate. The Talos worker-volume patch
+and restore pod stay manual.
 
 HTTPS uses Traefik at `192.168.4.200`. A separate LoadBalancer Service shares
 that private IP for SSH on port `222`, forwarding to the container's port `22`.
@@ -20,11 +21,16 @@ Keep the router's WAN forwards and public gateway routes away from `.200`.
 ## Storage and process
 
 The static PV binds only to `forgejo/data`, on `talos-worker-01`, at
-`/var/mnt/forgejo`. No StorageClass or provisioner is installed. The directory
-uses the worker's existing Talos EPHEMERAL filesystem, shared with images and
-logs; it survives ordinary pod restarts and node reboots, not a disk wipe,
-reprovision or loss of the worker. A separate Talos user volume would need
-unallocated disk space, which this migration does not create.
+`/var/mnt/forgejo`. No StorageClass or provisioner is installed. Talos must first
+expose that path through the directory-backed UserVolume in
+`worker-volume.patch.yaml`. Creating a hostPath alone does not make it writable
+inside kubelet on Talos 1.14.
+
+The directory uses the worker's existing Talos EPHEMERAL filesystem, shared with
+images and logs; it survives ordinary pod restarts and node reboots, not a disk
+wipe, reprovision or loss of the worker. `volumeType: directory` creates no
+partition, formats no disk and requires no resize. A partition-backed user
+volume would need unallocated disk space, which this migration does not create.
 
 The PV and claim advertise 10 GiB. This is not a reservation, partition or quota:
 watch actual worker free space and leave room for images and logs. Before this
@@ -76,10 +82,32 @@ Expect the Deployment at zero replicas, claim Bound, certificate Ready and both
 LoadBalancer Services assigned `.200`. Forgejo HTTPS can return 503 while it is
 stopped. Check that Homepage still serves normally. Do not change DNS yet.
 
-The manual restore pod is excluded from Kustomize. It creates the local directory
-and exposes only that directory inside a temporary root container. It uses
-`kube-system` because hostPath is forbidden by Forgejo's baseline policy; it does
-not change either namespace's admission policy or receive an API token.
+Before creating the restore pod, apply the Talos configuration to the worker
+from the laptop, using the working `TALOSCONFIG`. This is a Talos document, not
+a Kubernetes resource: do not apply it with `kubectl` or add it to Kustomize.
+Keep it in the worker's machine configuration when reprovisioning.
+
+```sh
+talosctl --nodes 192.168.4.133 patch mc --patch @kubernetes/apps/forgejo/worker-volume.patch.yaml
+talosctl --nodes 192.168.4.133 get volumestatus u-forgejo
+talosctl --nodes 192.168.4.133 get mountstatus u-forgejo
+```
+
+Wait until the volume is ready and the mount targets `/var/mnt/forgejo`.
+This exposes a writable directory from EPHEMERAL to kubelet; do not add
+partition, filesystem or mount options to the directory-volume configuration.
+
+The manual restore pod is excluded from Kustomize. It mounts the existing Talos
+volume inside a temporary root container and refuses to create a substitute
+directory if the volume is missing. It uses `kube-system` because hostPath is
+forbidden by Forgejo's baseline policy; it does not change either namespace's
+admission policy or receive an API token.
+
+If an earlier helper is stuck in `ContainerCreating` with a read-only filesystem
+error, the failed mount has not restored any data. After the Talos volume is
+ready, delete that failed pod with `kubectl -n kube-system delete pod
+forgejo-restore --wait=true`, then recreate it from the updated manifest. Do not
+delete the PV or PVC; their paths and stored data are unchanged.
 
 ```sh
 kubectl apply -f kubernetes/apps/forgejo/restore-pod.yaml
@@ -253,4 +281,5 @@ filesystem. `Retain`, Proxmox storage and a surviving PVC are not backups.
 - [Forgejo backup and restore](https://forgejo.org/docs/latest/admin/setup/backup/)
 - [Talos disk layout](https://docs.siderolabs.com/talos/v1.14/configure-your-talos-cluster/storage-and-disk-management/disk-management/layout)
 - [Talos local storage](https://docs.siderolabs.com/kubernetes-guides/csi/local-storage)
+- [Talos directory-backed user volumes](https://docs.siderolabs.com/talos/v1.14/configure-your-talos-cluster/storage-and-disk-management/disk-management/user#volumetype-directory)
 - [MetalLB IP sharing](https://metallb.io/usage/#ip-address-sharing)
