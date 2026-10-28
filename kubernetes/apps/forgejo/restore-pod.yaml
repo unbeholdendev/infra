@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: forgejo-restore
+  namespace: kube-system
+spec:
+  restartPolicy: Never
+  automountServiceAccountToken: false
+  nodeSelector:
+    kubernetes.io/hostname: talos-worker-01
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: restore
+      image: codeberg.org/forgejo/forgejo:16.0.6
+      command:
+        - /bin/sh
+        - -ec
+        - sleep infinity
+      securityContext:
+        runAsUser: 0
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+          add:
+            - CHOWN
+            - DAC_OVERRIDE
+            - FOWNER
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          memory: 256Mi
+      volumeMounts:
+        - name: data
+          mountPath: /data
+  volumes:
+    - name: data
+      hostPath:
+        path: /var/mnt/forgejo
+        type: DirectoryOrCreate

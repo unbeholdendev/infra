@@ -47,9 +47,11 @@ spec:
       annotations:
         metallb.io/address-pool: ingress
         metallb.io/loadBalancerIPs: 192.168.4.200
+        metallb.io/allow-shared-ip: private-ingress
       spec:
         type: LoadBalancer
         allocateLoadBalancerNodePorts: false
+        externalTrafficPolicy: Cluster
     resources:
       requests:
         cpu: 50m

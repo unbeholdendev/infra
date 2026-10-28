@@ -5,7 +5,9 @@ MetalLB assigns `192.168.4.200` to its LoadBalancer Service, exposing TCP 80 and
 443. HTTP redirects permanently to HTTPS for all routes on this proxy. No host
 networking, host ports, allocated NodePorts, persistent volume or Traefik ACME
 resolver is configured. The management dashboard is disabled and the API is
-not exposed.
+not exposed. The `private-ingress` MetalLB sharing key and explicit `Cluster`
+traffic policy let Forgejo's separate SSH Service share `.200` on TCP 222.
+Traefik still handles only HTTP/HTTPS; see [Forgejo](../../apps/forgejo/).
 
 The standard Kubernetes Ingress API selects the `traefik` class and `websecure`
 entrypoint. Its TLS section references `homepage/homepage-tls`, issued and

@@ -73,6 +73,14 @@ For failures, inspect `kubectl -n homepage describe pod` and `kubectl -n homepag
 logs deployment/homepage`, using the same kubeconfig. A Flux Kustomization may
 remain unhealthy until the Deployment is ready.
 
+## Forgejo
+
+[`apps/forgejo`](apps/forgejo/) prepares the private Forgejo migration with a
+retained worker-local volume, HTTPS and SSH. The Deployment stays stopped until
+the source is stopped and its complete data directory restored. Its README
+covers preparation, manual restore, validation, cutover and recovery. This stage
+does not change DNS, Flux's Git source or the old public instance.
+
 ## References
 
 Checked against the current official documentation and v2.7.0 source:

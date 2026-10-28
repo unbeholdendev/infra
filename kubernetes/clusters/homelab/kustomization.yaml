@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - flux-system
   - homepage.yaml
+  - forgejo.yaml
   - metallb.yaml
   - traefik.yaml
   - cert-manager.yaml

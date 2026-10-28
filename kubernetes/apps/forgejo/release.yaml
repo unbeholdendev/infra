@@ -1,0 +1,137 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: forgejo
+spec:
+  interval: 1h
+  url: oci://code.forgejo.org/forgejo-helm/forgejo
+  ref:
+    tag: 17.3.2
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: forgejo
+spec:
+  interval: 1h
+  timeout: 10m
+  releaseName: forgejo
+  chartRef:
+    kind: OCIRepository
+    name: forgejo
+  driftDetection:
+    mode: enabled
+  values:
+    replicaCount: 1
+    image:
+      registry: codeberg.org
+      repository: forgejo/forgejo
+      tag: 16.0.6
+      rootless: false
+    strategy:
+      type: Recreate
+    nodeSelector:
+      kubernetes.io/hostname: talos-worker-01
+    podSecurityContext:
+      fsGroup: 1000
+      fsGroupChangePolicy: OnRootMismatch
+      seccompProfile:
+        type: RuntimeDefault
+    serviceAccount:
+      create: true
+      automountServiceAccountToken: false
+    persistence:
+      enabled: true
+      create: false
+      mount: true
+      claimName: data
+    initPreScript: |
+      test -f /data/.forgejo-restore-complete
+      test -s /data/gitea/conf/app.ini
+      test -s /data/gitea/gitea.db
+      test -d /data/git/repositories
+      grep -Eq '^[[:space:]]*DB_TYPE[[:space:]]*=[[:space:]]*sqlite3[[:space:]]*$' /data/gitea/conf/app.ini
+    deployment:
+      env:
+        - name: USER_UID
+          value: "1000"
+        - name: USER_GID
+          value: "1000"
+    gitea:
+      admin:
+        username: ""
+        existingSecret: ""
+      config:
+        database:
+          DB_TYPE: sqlite3
+          PATH: /data/gitea/gitea.db
+        repository:
+          ROOT: /data/git/repositories
+        server:
+          APP_DATA_PATH: /data/gitea
+          ROOT_URL: https://git.home.unbeholden.dev/
+          DOMAIN: git.home.unbeholden.dev
+          PROTOCOL: http
+          HTTP_ADDR: 0.0.0.0
+          HTTP_PORT: 3000
+          SSH_DOMAIN: git.home.unbeholden.dev
+          SSH_PORT: 222
+          SSH_LISTEN_PORT: 22
+          START_SSH_SERVER: false
+        security:
+          INSTALL_LOCK: true
+      startupProbe:
+        enabled: true
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 1Gi
+    service:
+      http:
+        type: ClusterIP
+      ssh:
+        type: LoadBalancer
+        port: 222
+        externalTrafficPolicy: Cluster
+        annotations:
+          metallb.io/address-pool: ingress
+          metallb.io/loadBalancerIPs: 192.168.4.200
+          metallb.io/allow-shared-ip: private-ingress
+    ingress:
+      enabled: true
+      className: traefik
+      annotations:
+        traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      hosts:
+        - host: git.home.unbeholden.dev
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - hosts:
+            - git.home.unbeholden.dev
+          secretName: forgejo-tls
+    test:
+      enabled: false
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              group: apps
+              version: v1
+              kind: Deployment
+              name: forgejo
+            patch: |
+              - op: replace
+                path: /spec/replicas
+                value: 0
+          - target:
+              version: v1
+              kind: Service
+              name: forgejo-ssh
+            patch: |
+              - op: add
+                path: /spec/allocateLoadBalancerNodePorts
+                value: false
