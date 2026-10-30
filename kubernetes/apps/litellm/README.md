@@ -118,10 +118,12 @@ Forgejo still work.
 
 ## Client keys and subscription checks
 
-Use the master key only for administration. On the laptop, retrieve it from
-`litellm-masterkey` without putting it in Git, shell history or chat, and log
-into `/ui` over trusted HTTPS. Create separate virtual keys named `claude-code`
-and `pi`, restricted to the configured Anthropic models. Keep the Pi key unused
+Use the master key only for API administration. `disable_env_credential_login`
+turns off its `/ui` login, so log in with a database-held admin account. That
+account has no backup: if the database is lost, remove the setting to log in
+with the master key and create another. Retrieve the key from
+`litellm-masterkey` without putting it in Git, shell history or chat. Create
+separate virtual keys named `claude-code` and `pi`, restricted to the configured Anthropic models. Keep the Pi key unused
 while native OpenAI support is unresolved. Put client keys in the clients' local
 secret stores, never use the master key for inference clients, and do not copy
 OAuth files to the cluster.

@@ -85,6 +85,7 @@ spec:
         turn_off_message_logging: true
       general_settings:
         master_key: os.environ/PROXY_MASTER_KEY
+        disable_env_credential_login: true
         forward_client_headers_to_llm_api: true
         store_prompts_in_spend_logs: false
         maximum_spend_logs_retention_period: 14d
