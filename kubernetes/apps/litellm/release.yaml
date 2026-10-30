@@ -71,9 +71,9 @@ spec:
       resources:
         requests:
           cpu: 100m
-          memory: 256Mi
+          memory: 512Mi
         limits:
-          memory: 1Gi
+          memory: 3Gi
     proxy_config:
       model_list:
         - model_name: anthropic/*
@@ -104,7 +104,7 @@ spec:
         cpu: 100m
         memory: 1Gi
       limits:
-        memory: 2Gi
+        memory: 3Gi
     ingress:
       enabled: true
       className: traefik

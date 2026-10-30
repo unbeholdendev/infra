@@ -200,11 +200,12 @@ upstream header-filtering fix over maintaining a gateway fork.
 
 ## Operations and rollback
 
-The proxy starts with a 1 GiB memory request and 2 GiB limit. LiteLLM's
-production guide recommends about 4 GiB per database-connected worker; this
-smaller trial profile is unmeasured. Check restarts and actual memory use before
-increasing traffic. PostgreSQL requests 256 MiB with a 512 MiB limit; the
-migration job has a separate 1 GiB limit. The worker's existing memory limits
+The proxy starts with a 1 GiB memory request and 3 GiB limit. LiteLLM's
+production guide recommends about 4 GiB per database-connected worker; check
+restarts and actual memory use before increasing traffic. PostgreSQL requests
+256 MiB with a 512 MiB limit; the migration job has a 512 MiB request and 3 GiB
+limit because `prisma_migration.py` imports the proxy CLI and runs Prisma's
+schema/generator engines in-process. The worker's existing memory limits
 already exceed its allocatable memory, so limits are not reserved capacity.
 
 Check the shared worker filesystem and database size during the trial:
