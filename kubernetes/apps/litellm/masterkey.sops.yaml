@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: litellm-masterkey
+type: Opaque
+stringData:
+    masterkey: ENC[AES256_GCM,data:RsMd+J9rexPIrz6xD7MCUVbk0J56b1dy2lDpIM5wR6Tj+8fNU0jmWUo+qQR5jeb5c0Eqwxp0G2PtRVUnhFFuHdvlWg==,iv:5ShkCm1ghHBHur0rD1V6hNl9HpyC7eTDktOrlOORbGo=,tag:DHAjH1uiilJPf84m4PxuSg==,type:str]
+sops:
+    age:
+        - enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBLR1pGTHltRmI5MkQrQzkw
+            TVlKV1QxOU1pRWVTQkhkdUcvWStZL1hLVkJVClZONUJmQjZCTkczd3Iya2MzS0Vt
+            SFJqTktzQnh5WThFVmh0NDc0enNaZDAKLS0tIDVsb2JxZTNFZ2pRUjBCNDl2a0Yw
+            OGg2eldnRFo1ZjBoTjV0c2Y5NTFBbzQKHRBWQ1/e+VyG0jn3YZibz+oetF8c1s2d
+            WIfpTQc6H1T7lRBwu49/GIq6p5/5+ZHM8dcBvw2HeolxV33whQzWBg==
+            -----END AGE ENCRYPTED FILE-----
+          recipient: age1mxt9m530pkxpsr0d29fafltd8ln27yfk5sk3mnjqlrpjhq334uhsnhpuh7
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-10-30T09:08:54Z"
+    mac: ENC[AES256_GCM,data:Yl90+yu4sxzPoqZC/qVr/qyulGI0dggkiRc63AcAfmFYb5PJu1uSUCwhB0OkSe9zIvXh1OTj3SS84WiwCFtfbYJGlVUsqnWcOkn96CcmQc5taBYdP86wMH+Q1tstWo7YxKtCO9t0lcnBDfl1gPaa6XQVecSTT8K00RZXiaa6Pxs=,iv:uix0dGCVYnBqM97lU9fwqrJoa/RU0BWlCiL5CE0+jRc=,tag:Yya/17Y7o2HwD+0RD/WKUg==,type:str]
+    version: 3.13.3

@@ -81,6 +81,15 @@ the source is stopped and its complete data directory restored. Its README
 covers preparation, manual restore, validation, cutover and recovery. This stage
 does not change DNS, Flux's Git source or the old public instance.
 
+## LiteLLM
+
+[`apps/litellm`](apps/litellm/) trials Claude Code subscription forwarding at
+`llm.home.unbeholden.dev`, with client virtual keys, PostgreSQL and 14-day request
+logs. Pi's native OpenAI subscription stays direct pending compatibility tests.
+Apply the manual Talos volume patch before startup. Storage is worker-local and
+has no backups for this trial; its README covers deployment, acceptance checks
+and client rollback.
+
 ## References
 
 Checked against the current official documentation and v2.7.0 source:

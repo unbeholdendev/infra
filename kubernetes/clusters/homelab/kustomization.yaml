@@ -4,6 +4,7 @@ resources:
   - flux-system
   - homepage.yaml
   - forgejo.yaml
+  - litellm.yaml
   - metallb.yaml
   - traefik.yaml
   - cert-manager.yaml

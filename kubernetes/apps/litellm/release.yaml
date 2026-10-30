@@ -1,0 +1,121 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: litellm
+spec:
+  interval: 1h
+  url: oci://ghcr.io/berriai/litellm-helm
+  ref:
+    tag: 1.106.6
+    digest: sha256:b681a4cb1eafd4c8aa642b58e9666d9f8afb9c4972d2230d91b2b1dfecf8f934
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: litellm
+spec:
+  interval: 1h
+  timeout: 15m
+  releaseName: litellm
+  chartRef:
+    kind: OCIRepository
+    name: litellm
+  driftDetection:
+    mode: enabled
+  values:
+    replicaCount: 1
+    numWorkers: 1
+    image:
+      repository: ghcr.io/berriai/litellm
+      tag: v1.106.6@sha256:37e2dafb088a7723beb998590682957386dfc83ffea1848486f8e0e5cfac0b06
+      pullPolicy: IfNotPresent
+    strategy:
+      type: Recreate
+    nodeSelector:
+      kubernetes.io/hostname: talos-worker-01
+    serviceAccount:
+      create: false
+      name: litellm
+    masterkeySecretName: litellm-masterkey
+    masterkeySecretKey: masterkey
+    extraEnvVars:
+      - name: LITELLM_SALT_KEY
+        valueFrom:
+          secretKeyRef:
+            name: litellm-env
+            key: LITELLM_SALT_KEY
+    envVars:
+      LITELLM_LOG: INFO
+      LITELLM_SUPPRESS_SPEND_LOG_TRACEBACKS: "true"
+      STORE_PROMPTS_IN_SPEND_LOGS: "false"
+    db:
+      useExisting: true
+      deployStandalone: false
+      endpoint: postgres.litellm.svc.cluster.local
+      database: litellm
+      secret:
+        name: litellm-db
+        usernameKey: username
+        passwordKey: password
+    redis:
+      enabled: false
+    migrationJob:
+      enabled: true
+      backoffLimit: 2
+      activeDeadlineSeconds: 600
+      hooks:
+        argocd:
+          enabled: false
+        helm:
+          enabled: true
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          memory: 1Gi
+    proxy_config:
+      model_list:
+        - model_name: anthropic/*
+          litellm_params:
+            model: anthropic/*
+      litellm_settings:
+        request_timeout: 1800
+        cache: false
+        turn_off_message_logging: true
+      general_settings:
+        master_key: os.environ/PROXY_MASTER_KEY
+        forward_client_headers_to_llm_api: true
+        store_prompts_in_spend_logs: false
+        maximum_spend_logs_retention_period: 14d
+        maximum_spend_logs_retention_interval: 1h
+        spend_logs_metadata_fields:
+          include:
+            - user_api_key_alias
+            - user_api_key_user_id
+            - user_api_key_team_id
+            - user_api_key_team_alias
+            - used_client_oauth_token
+            - additional_usage_values
+            - cost_breakdown
+            - litellm_overhead_time_ms
+    resources:
+      requests:
+        cpu: 100m
+        memory: 1Gi
+      limits:
+        memory: 2Gi
+    ingress:
+      enabled: true
+      className: traefik
+      annotations:
+        traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      hosts:
+        - host: llm.home.unbeholden.dev
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - hosts:
+            - llm.home.unbeholden.dev
+          secretName: litellm-tls
