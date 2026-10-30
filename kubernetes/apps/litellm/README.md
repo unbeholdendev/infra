@@ -29,12 +29,14 @@ but would add CRDs, an operator and backup integration without fixing this
 worker's storage or failure domain. Reconsider it when more applications need
 PostgreSQL or recovery requirements grow.
 
-Individual request logs expire after 14 days, with cleanup scheduled hourly
+Individual request logs expire after 3 days, with cleanup scheduled hourly
 while the proxy is healthy. Daily usage aggregates are stored separately and
 are not expired by this setting; key/model/date/token/spend totals can remain
-beyond 14 days. This is request-log retention, not a limit on all usage history. Prompt/response storage is disabled. Stored metadata uses an
-allow-list that keeps client identity, OAuth attribution and usage details but
-excludes request content, error bodies and tracebacks. Failed requests keep
+beyond 3 days. This is request-log retention, not a limit on all usage history. Request and response bodies are stored for debugging, so
+prompts, file contents and tool results stay in PostgreSQL until cleanup.
+LiteLLM drops raw request headers and masks credential-named body fields.
+Stored metadata uses an allow-list that keeps client identity, OAuth
+attribution and usage details but excludes error bodies and tracebacks. Failed requests keep
 their outcome, without stored error diagnostics. Review console logs separately;
 these database controls do not prove every upstream exception is safe to log.
 Rows can remain until the next cleanup run. Deleting rows does
@@ -155,7 +157,7 @@ Before accepting the trial, use the existing client subscription for all of:
 In the dashboard, check key identity, actual model, outcome, input/output tokens,
 cache reads/writes and latency. Confirm `Credential: Client OAuth token` or
 `used_client_oauth_token=true` for successful subscription requests. Inspect
-records for absence of prompt/response content and credential-bearing metadata.
+records for credential-bearing headers or metadata.
 If attribution is missing, stop and investigate before more traffic.
 
 Dashboard cost is the API list-price equivalent, not the subscription invoice

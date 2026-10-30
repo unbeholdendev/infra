@@ -82,13 +82,13 @@ spec:
       litellm_settings:
         request_timeout: 1800
         cache: false
-        turn_off_message_logging: true
+        turn_off_message_logging: false
       general_settings:
         master_key: os.environ/PROXY_MASTER_KEY
         disable_env_credential_login: true
         forward_client_headers_to_llm_api: true
-        store_prompts_in_spend_logs: false
-        maximum_spend_logs_retention_period: 14d
+        store_prompts_in_spend_logs: true
+        maximum_spend_logs_retention_period: 3d
         maximum_spend_logs_retention_interval: 1h
         spend_logs_metadata_fields:
           include:
