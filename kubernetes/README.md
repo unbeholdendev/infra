@@ -32,9 +32,9 @@ exact dashboard rewrite points to `.200`; Caddy and the wildcard stay unchanged.
 
 [`infrastructure/cert-manager`](infrastructure/cert-manager/) installs
 cert-manager, the community Spaceship DNS-01 webhook and Let's Encrypt staging
-and production issuers. Homepage requests its production certificate using the
-encrypted Spaceship credentials. Traefik uses the issued `homepage-tls` Secret
-for HTTPS. See its README for verification and cleanup of the staging test.
+and production issuers. Traefik requests one `*.home.unbeholden.dev` certificate
+using the encrypted Spaceship credentials and serves it for every HTTPS route.
+See its README for verification and cleanup.
 
 ## Homepage
 

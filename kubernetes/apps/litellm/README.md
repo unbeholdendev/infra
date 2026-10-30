@@ -79,14 +79,14 @@ SOPS decryption using `flux-system/sops-age`; bootstrap and key recovery are in
 flux reconcile kustomization flux-system --with-source
 flux reconcile kustomization litellm
 flux get kustomizations
-kubectl -n litellm get ocirepository,helmrelease,deployment,job,pvc,certificate,ingress
+kubectl -n litellm get ocirepository,helmrelease,deployment,job,pvc,ingress
 kubectl get pv litellm-postgres
 kubectl -n litellm rollout status deployment/postgres --timeout=5m
 kubectl -n litellm logs deployment/postgres --tail=50
 ```
 
 Expect the claim Bound, PostgreSQL and proxy Ready, the migration job Complete,
-the HelmRelease Ready and the Certificate Ready. Inspect migration and proxy
+and the HelmRelease Ready. Inspect migration and proxy
 logs locally for errors; do not paste credentials, request headers or payloads
 into issues or chat. A successful Helm render does not prove migrations work.
 
@@ -242,7 +242,7 @@ initialisation, authentication and restart persistence. Secret schema fixtures r
 ciphertext; local checks do not decrypt them. Flux decryption remains a live
 check. The database test uses PostgreSQL 17.11 processes, not the Kubernetes
 container or Talos mount. Live Flux reconciliation, migrations,
-readiness, certificate issuance, DNS, gateway authentication, subscription
+readiness, DNS, gateway authentication, subscription
 billing attribution, streaming/tool use, log privacy, retention cleanup and
 client rollback require laptop/cluster access and remain acceptance gates.
 

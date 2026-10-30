@@ -10,7 +10,7 @@ Flux installs the maintained Forgejo chart through an OCIRepository and
 HelmRelease in `release.yaml`. Chart 17.3.2 is pinned separately from the
 application image, which stays at 16.0.6 to avoid a database upgrade during
 migration. The chart owns the Deployment, Services and Ingress; Kustomize owns
-the namespace, retained PV/PVC and Certificate. The Talos worker-volume patch
+the namespace and retained PV/PVC. The Talos worker-volume patch
 and restore pod stay manual.
 
 HTTPS uses Traefik at `192.168.4.200`. A separate LoadBalancer Service shares
@@ -95,12 +95,12 @@ and the temporary zero-replica patch in place:
 
 ```sh
 flux get kustomizations
-kubectl -n forgejo get helmrelease,ocirepository,deployment,pvc,certificate,service
+kubectl -n forgejo get helmrelease,ocirepository,deployment,pvc,service
 kubectl get pv forgejo-data
 kubectl -n traefik get service
 ```
 
-Expect the Deployment at zero replicas, claim Bound, certificate Ready and both
+Expect the Deployment at zero replicas, claim Bound and both
 LoadBalancer Services assigned `.200`. Forgejo HTTPS can return 503 while it is
 stopped. Check that Homepage still serves normally. Do not change DNS yet.
 

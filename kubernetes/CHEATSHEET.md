@@ -115,7 +115,7 @@ DNS → 192.168.4.200 (MetalLB) → Traefik → Ingress rule → Service → rea
 
 ```sh
 kubectl -n traefik get service,pods
-kubectl -n homepage get ingress,service,endpointslices,certificates
+kubectl -n homepage get ingress,service,endpointslices
 ```
 
 Port-forward works but the hostname fails? Check DNS, routing/firewall, Traefik

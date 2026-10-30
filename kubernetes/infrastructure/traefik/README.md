@@ -10,14 +10,16 @@ traffic policy let Forgejo's separate SSH Service share `.200` on TCP 222.
 Traefik still handles only HTTP/HTTPS; see [Forgejo](../../apps/forgejo/).
 
 The standard Kubernetes Ingress API selects the `traefik` class and `websecure`
-entrypoint. Its TLS section references `homepage/homepage-tls`, issued and
-renewed by [cert-manager](../cert-manager/). Traefik terminates TLS and forwards
-HTTP to Homepage's private ClusterIP Service. No Traefik routing CRDs or Gateway
-API are used; the unused CRD provider and chart CRD installation remain disabled.
+entrypoint. The entrypoint enables TLS, and the default `TLSStore` serves
+`traefik/home-wildcard-tls`, issued and renewed by
+[cert-manager](../cert-manager/), so an Ingress needs no TLS section. Traefik
+terminates TLS and forwards HTTP to the app's private ClusterIP Service. The CRD
+provider and the chart's CRDs exist only for that `TLSStore`; routes stay on
+Ingress, with no IngressRoutes or Gateway API.
 
-Flux waits for `metallb-config` before installing Traefik. Homepage waits for
-Traefik and the certificate issuers. Its existing pod and port-forward access
-remain available while dependencies become ready. A proxy rollout or the
+Flux waits for `metallb-config` and the certificate issuers before installing
+Traefik, and apps wait until the wildcard is Ready. Existing pod and port-forward
+access remains available while dependencies become ready. A proxy rollout or the
 separate Helm/Ingress reconciliations may briefly interrupt routing.
 
 ## Verify after merge
@@ -27,7 +29,7 @@ Flux detects the merge automatically. On the laptop:
 ```sh
 nix shell nixpkgs#fluxcd --command flux get kustomizations --kubeconfig="$HOME/talos/dion-v2/kubeconfig"
 kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n traefik get helmrelease,pods,service
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n homepage get ingress,certificate
+kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n traefik get certificate,tlsstore
 curl --noproxy '*' --fail --show-error --connect-timeout 5 --max-time 15 --resolve dashboard.home.unbeholden.dev:443:192.168.4.200 -I https://dashboard.home.unbeholden.dev/
 curl --noproxy '*' --show-error --connect-timeout 5 --max-time 15 --resolve dashboard.home.unbeholden.dev:80:192.168.4.200 -I http://dashboard.home.unbeholden.dev/
 ```
@@ -55,8 +57,8 @@ separate review.
 
 If the address is assigned but connections time out, check the routed/firewall
 path for TCP 443. An HTTP 404 suggests an Ingress hostname/entrypoint mismatch.
-A default/self-signed certificate suggests the TLS Secret is missing or not
-loaded, or the request used the wrong server name; do not bypass validation.
+A self-signed `TRAEFIK DEFAULT CERT` suggests the TLS Secret is missing or not
+loaded; do not bypass validation.
 If HTTP redirects but HTTPS fails, use the checks above before changing DNS.
 
 ## References

@@ -6,6 +6,7 @@ metadata:
 spec:
   dependsOn:
     - name: metallb-config
+    - name: cert-issuers
   interval: 1h
   path: ./kubernetes/infrastructure/traefik
   prune: true
@@ -13,4 +14,4 @@ spec:
     kind: GitRepository
     name: flux-system
   wait: true
-  timeout: 5m
+  timeout: 20m

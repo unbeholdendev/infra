@@ -4,8 +4,7 @@ Installs the official cert-manager chart **v1.21.3** and the community Spaceship
 webhook chart/app **0.1.3**. Flux orders reconciliation:
 
 ```text
-cert-manager → spaceship-webhook → cert-issuers → homepage
-                                      traefik ↗
+cert-manager → spaceship-webhook → cert-issuers → traefik → apps
 ```
 
 The first stage installs cert-manager's CRDs, controller, admission webhook and
@@ -14,14 +13,17 @@ Its internal serving certificates are issued by cert-manager using a private,
 self-signed CA; those do not contact Let's Encrypt or Spaceship.
 
 The issuers stage registers `letsencrypt-staging` and `letsencrypt-production`
-with `acme@unbeholden.dev`. Both select only `dashboard.home.unbeholden.dev` and
-use the encrypted Spaceship Secret. The staging issuer remains for future tests;
+with `acme@unbeholden.dev`. Both select only `*.home.unbeholden.dev` and use the
+encrypted Spaceship Secret. The staging issuer remains for future tests;
 there is no active staging Certificate.
 
-Homepage requests a production certificate in `homepage/homepage-tls`, separate
-from the staging test Secret and ACME account keys. Its Flux Kustomization waits
-for the issuers and allows twenty minutes for issuance. Traefik uses this
-Secret for the dashboard's HTTPS route; cert-manager handles renewals.
+Traefik requests one production wildcard certificate in
+`traefik/home-wildcard-tls`, separate from the staging test Secret and ACME
+account keys. Its Flux Kustomization waits for the issuers and allows twenty
+minutes for issuance. Traefik serves it as the default certificate for every
+HTTPS route; cert-manager handles renewals. A failed renewal affects them all.
+Apps need no `Certificate` or Ingress TLS section. The wildcard covers one label:
+neither `home.unbeholden.dev` nor `a.b.home.unbeholden.dev`.
 
 ## Security and DNS
 
@@ -68,21 +70,31 @@ ClusterIssuers Ready. Production issuance can take several minutes for DNS
 propagation; check the Certificate rather than retrying production requests.
 
 ```sh
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n homepage wait --for=condition=Ready certificate/homepage --timeout=20m
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n homepage get certificates,orders,challenges
+kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n traefik wait --for=condition=Ready certificate/home-wildcard --timeout=20m
+kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n traefik get certificates,orders,challenges
 ```
 
-Expect `homepage` Ready and its ACME Order valid. The Challenge may already be
-gone after completion; if still present, allow cleanup to finish. Confirm the
-public TXT record at `_acme-challenge.dashboard.home.unbeholden.dev` is removed.
-Leave unrelated records alone. If issuance fails, describe `certificate/homepage`
+Expect `home-wildcard` Ready and its ACME Order valid. The Challenge may already
+be gone after completion; if still present, allow cleanup to finish. Confirm
+cert-manager's public TXT record at `_acme-challenge.home.unbeholden.dev` is
+removed. Caddy uses the same name for its own wildcard until it is retired, so
+leave other values alone. If issuance fails, describe `certificate/home-wildcard`
 and the relevant Order/Challenge without printing Secrets. A Ready issuer alone
 only proves ACME account registration, not certificate issuance.
 
-Traefik consumes `homepage-tls` through the Ingress. Follow its
-[verification steps](../traefik/) to check the served certificate. The exact
-AdGuard dashboard rewrite points to `192.168.4.200`; keep Caddy, Radicale and the
-wildcard rewrite unchanged. No public inbound access is needed for issuance.
+Follow Traefik's [verification steps](../traefik/) to check the served
+certificate. Exact AdGuard rewrites point cluster hostnames to `192.168.4.200`;
+keep Caddy, Radicale and the wildcard rewrite unchanged. No public inbound access
+is needed for issuance.
+
+Flux prunes the per-app Certificates but cert-manager retains their Secrets. Once
+every route serves the wildcard, remove them:
+
+```sh
+kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n homepage delete secret homepage-tls --ignore-not-found
+kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n forgejo delete secret forgejo-tls --ignore-not-found
+kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n litellm delete secret litellm-tls --ignore-not-found
+```
 
 The temporary staging Certificate manifest is removed, stopping its renewals.
 cert-manager normally retains the generated TLS Secret. Once Flux has removed

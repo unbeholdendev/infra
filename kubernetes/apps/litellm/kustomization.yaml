@@ -6,7 +6,6 @@ resources:
   - storage.yaml
   - postgres.yaml
   - release.yaml
-  - certificate.yaml
   - db.sops.yaml
   - masterkey.sops.yaml
   - env.sops.yaml

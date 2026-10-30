@@ -6,10 +6,6 @@ metadata:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
 spec:
   ingressClassName: traefik
-  tls:
-    - hosts:
-        - dashboard.home.unbeholden.dev
-      secretName: homepage-tls
   rules:
     - host: dashboard.home.unbeholden.dev
       http:

@@ -11,9 +11,7 @@ spec:
     solvers:
       - selector:
           dnsNames:
-            - dashboard.home.unbeholden.dev
-            - git.home.unbeholden.dev
-            - llm.home.unbeholden.dev
+            - "*.home.unbeholden.dev"
         dns01:
           webhook:
             groupName: cert-manager-webhook-spaceship.hjwylde.github.io

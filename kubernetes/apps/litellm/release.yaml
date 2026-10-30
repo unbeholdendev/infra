@@ -116,7 +116,3 @@ spec:
           paths:
             - path: /
               pathType: Prefix
-      tls:
-        - hosts:
-            - llm.home.unbeholden.dev
-          secretName: litellm-tls

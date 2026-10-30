@@ -6,7 +6,6 @@ metadata:
 spec:
   dependsOn:
     - name: traefik
-    - name: cert-issuers
   interval: 10m
   path: ./kubernetes/apps/homepage
   prune: true

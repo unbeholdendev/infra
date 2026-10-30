@@ -13,9 +13,9 @@ metadata:
 spec:
   interval: 1h
   install:
-    crds: Skip
+    crds: Create
   upgrade:
-    crds: Skip
+    crds: CreateReplace
   chart:
     spec:
       chart: traefik
@@ -32,9 +32,13 @@ spec:
       isDefaultClass: false
     providers:
       kubernetesCRD:
-        enabled: false
+        enabled: true
       kubernetesIngress:
         enabled: true
+    tlsStore:
+      default:
+        defaultCertificate:
+          secretName: home-wildcard-tls
     ports:
       web:
         http:
