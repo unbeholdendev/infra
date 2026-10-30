@@ -1,0 +1,39 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "automerge": false,
+  "prConcurrentLimit": 3,
+  "prHourlyLimit": 0,
+  "kubernetes": {
+    "managerFilePatterns": [
+      "/^kubernetes/(apps|infrastructure)/.+\\.ya?ml$/"
+    ]
+  },
+  "flux": {
+    "managerFilePatterns": [
+      "/^kubernetes/.+\\.ya?ml$/"
+    ]
+  },
+  "packageRules": [
+    {
+      "matchDatasources": [
+        "terraform-provider",
+        "terraform-module"
+      ],
+      "registryUrls": [
+        "https://registry.opentofu.org"
+      ]
+    },
+    {
+      "matchManagers": [
+        "terraform"
+      ],
+      "matchDepTypes": [
+        "required_version"
+      ],
+      "enabled": false
+    }
+  ]
+}

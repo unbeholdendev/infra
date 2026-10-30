@@ -1,0 +1,62 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: renovate
+spec:
+  schedule: "17 5 * * *"
+  timeZone: Etc/UTC
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 3600
+      template:
+        spec:
+          serviceAccountName: renovate
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 12021
+            runAsGroup: 12021
+            fsGroup: 12021
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: renovate
+              image: ghcr.io/renovatebot/renovate:44.198.1@sha256:e2b15654852cb11fbd7de6b6035aa0983b5183c81b888d85162137e9835a8425
+              env:
+                - name: RENOVATE_PLATFORM
+                  value: forgejo
+                - name: RENOVATE_ENDPOINT
+                  value: https://git.home.unbeholden.dev/api/v1/
+                - name: RENOVATE_AUTODISCOVER
+                  value: "true"
+                - name: RENOVATE_AUTODISCOVER_FILTER
+                  value: unbeholden/*
+                - name: RENOVATE_ONBOARDING
+                  value: "false"
+                - name: RENOVATE_REQUIRE_CONFIG
+                  value: required
+              envFrom:
+                - secretRef:
+                    name: renovate-env
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 512Mi
+                limits:
+                  memory: 2Gi
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: tmp
+              emptyDir:
+                sizeLimit: 5Gi

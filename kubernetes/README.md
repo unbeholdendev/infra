@@ -90,6 +90,12 @@ Apply the manual Talos volume patch before startup. Storage is worker-local and
 has no backups for this trial; its README covers deployment, acceptance checks
 and client rollback.
 
+## Renovate
+
+[`apps/renovate`](apps/renovate/) runs daily and opens dependency update PRs on
+selected `unbeholden` repositories. Its README covers selection, credentials and
+manual runs.
+
 ## References
 
 Checked against the current official documentation and v2.7.0 source:
