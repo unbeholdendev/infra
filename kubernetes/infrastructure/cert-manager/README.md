@@ -93,7 +93,6 @@ every route serves the wildcard, remove them:
 ```sh
 kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n homepage delete secret homepage-tls --ignore-not-found
 kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n forgejo delete secret forgejo-tls --ignore-not-found
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n litellm delete secret litellm-tls --ignore-not-found
 ```
 
 The temporary staging Certificate manifest is removed, stopping its renewals.
