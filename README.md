@@ -2,6 +2,8 @@
 
 Ansible playbooks for the fleet, OpenTofu for VM provisioning, and backup jobs.
 
+This is a mirror of my private repo.
+
 ## Dion Talos VMs
 
 [`opentofu/dion`](opentofu/dion/) defines one control-plane VM and one worker.

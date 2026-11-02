@@ -16,14 +16,10 @@ all:
         dion: { ansible_host: 192.168.6.3, ansible_user: root }
     vps:
       hosts:
-        schuttgart: { ansible_host: 92.119.127.234, ansible_user: unbeholden }
-        giran: { ansible_host: 89.58.40.247 }
+        schuttgart: { ansible_host: hs.unbeholden.dev, ansible_user: unbeholden }
+        giran: { ansible_host: unbeholden.dev }
       vars:
         ansible_user: pycan
-    work:
-      hosts:
-      vars:
-        ansible_user: admin
     router:
       hosts:
         openwrt: { ansible_host: 192.168.1.1, ansible_user: root }
