@@ -93,6 +93,10 @@
         href: http://192.168.4.12:8012/
         description: Invoices and billing
 - Bitcoin:
+    - Wallet:
+        icon: mdi-wallet-outline
+        href: https://wallet.home.unbeholden.dev
+        description: Bitcoin wallet
     - BTC RPC Explorer:
         icon: bitcoin.png
         href: http://192.168.4.12:3002/
