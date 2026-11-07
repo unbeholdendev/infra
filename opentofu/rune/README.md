@@ -17,7 +17,10 @@ tofu init -backend-config="path=$HOME/.local/state/opentofu/rune/terraform.tfsta
 tofu plan
 ```
 
-Before the first apply, confirm VM ID 110 is free on rune, and upload the NixOS
-26.05 minimal ISO to `local` as `nixos-minimal-26.05-x86_64-linux.iso`. The
-first plan should show one addition. `apply` creates the VM and boots the ISO.
-After NixOS is installed, set `cdrom.file_id` to `"none"` and apply again.
+The CD-ROM is empty once NixOS is installed. To create the VM from scratch or
+reinstall, upload the NixOS 26.05 minimal ISO to `local` as
+`nixos-minimal-26.05-x86_64-linux.iso`, set `cdrom.file_id` to
+`"local:iso/nixos-minimal-26.05-x86_64-linux.iso"`, and apply. With an empty
+boot disk the VM falls through to the CD-ROM. For a new VM, confirm ID 110 is
+free on rune first; the plan should show one addition. Set `file_id` back to
+`"none"` after the install.
