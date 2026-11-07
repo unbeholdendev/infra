@@ -13,8 +13,9 @@ git -c gpg.format=ssh -c gpg.ssh.allowedSignersFile=helper/release-keys/ssh-allo
 git rev-list -n1 vX.Y.Z
 ```
 
-Set the tag in `flake.nix`, run `nix flake lock`, and check that the locked
-`bitcoinix` rev matches. Follow
+Renovate opens a PR that sets the new tag in `flake.nix` but cannot update
+`flake.lock`. On that branch, run `nix flake lock`, check that the locked
+`bitcoinix` rev matches, and push. Follow
 [upgrading.md](https://github.com/bitcoinix/bitcoinix/blob/master/docs/upgrading.md)
 for every version you skip, then set `nix-bitcoin.configVersion`.
 

@@ -35,5 +35,18 @@
       ],
       "enabled": false
     }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Flake inputs pinned to a GitHub tag",
+      "managerFilePatterns": [
+        "/(^|/)flake\\.nix$/"
+      ],
+      "matchStrings": [
+        "\"github:(?<depName>[^/\"]+/[^/\"]+)/(?<currentValue>v\\d+\\.\\d+\\.\\d+)\""
+      ],
+      "datasourceTemplate": "github-tags"
+    }
   ]
 }
