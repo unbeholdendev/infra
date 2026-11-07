@@ -41,7 +41,7 @@ in
   systemd.services.lnd.unitConfig.ConditionPathExists = "/data/lnd/chain/bitcoin/mainnet/wallet.db";
 
   fileSystems."/mnt/lnd-backup" = {
-    device = "192.168.5.2:/mnt/storage/lnd-backup";
+    device = "192.168.5.2:/mnt/storage/lnd-backups";
     fsType = "nfs";
     options = [ "nfsvers=4.2" "noauto" "x-systemd.automount" "x-systemd.idle-timeout=600" ];
   };

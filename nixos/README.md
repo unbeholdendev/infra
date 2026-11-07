@@ -32,7 +32,7 @@ They are not in Git. Back them up off the host.
 ## Channel backups
 
 Each change to LND's `channel.backup` is copied to TrueNAS at
-`/mnt/storage/lnd-backup`. A timer repeats the copy 5 minutes after boot and
+`/mnt/storage/lnd-backups`. A timer repeats the copy 5 minutes after boot and
 hourly, so a missed change or an unreachable NAS catches up. Before the first deploy, create that dataset and an
 NFS share for 192.168.4.11 with maproot root, and add a router rule
 `goddard_nfs`: 192.168.4.11 → 192.168.5.2 tcp/2049. The file is encrypted with
@@ -73,7 +73,13 @@ data, but its TLS certificate is new, so aden's clients need the new one.
    lvrename pve/vm-100-disk-0 pve/vm-110-disk-9
    qm set 110 --scsi1 local-lvm:vm-110-disk-9,discard=on,ssd=1
    ```
-6. In the VM console, set a root password with `passwd` and note the DHCP address.
+6. VLAN 4 has no DHCP, and the console can't paste. In the VM console, type:
+   ```sh
+   sudo passwd root
+   sudo ip a add 192.168.4.11/24 dev ens18
+   sudo ip r add default via 192.168.4.1
+   ```
+   Then `ssh-keygen -R 192.168.4.11 && ssh root@192.168.4.11` from the laptop.
    Check that `/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1` is the
    data disk. disko formats only `drive-scsi0`. Then lay out the data disk:
    ```sh
@@ -85,10 +91,11 @@ data, but its TLS certificate is new, so aden's clients need the new one.
    ```
 7. From the laptop, in the repository root:
    ```sh
-   nix run github:nix-community/nixos-anywhere -- --flake .#goddard root@<dhcp-address>
+   nix run github:nix-community/nixos-anywhere -- --flake .#goddard root@192.168.4.11
    ```
    The VM reboots as goddard on 192.168.4.11. bitcoind, Fulcrum and LND fail until the
-   next step, because the files still carry the container's owners.
+   next step, because the files still carry the container's owners. The host
+   key changes again, so run `ssh-keygen -R 192.168.4.11` before logging in.
 8. On goddard:
    ```sh
    chown -R bitcoin:bitcoin /data/bitcoind
