@@ -1,4 +1,4 @@
-{ config, lib, modulesPath, ... }:
+{ config, lib, modulesPath, pkgs, ... }:
 
 let
   keyDir = ../keys/admin;
@@ -39,6 +39,36 @@ in
 
   # bitcoinix creates a new wallet when none exists; this node only runs the migrated one.
   systemd.services.lnd.unitConfig.ConditionPathExists = "/data/lnd/chain/bitcoin/mainnet/wallet.db";
+
+  fileSystems."/mnt/lnd-backup" = {
+    device = "192.168.5.2:/mnt/storage/lnd-backup";
+    fsType = "nfs";
+    options = [ "nfsvers=4.2" "noauto" "x-systemd.automount" "x-systemd.idle-timeout=600" ];
+  };
+
+  systemd.paths.lnd-channel-backup = {
+    wantedBy = [ "multi-user.target" ];
+    pathConfig.PathChanged = "/data/lnd/chain/bitcoin/mainnet/channel.backup";
+  };
+
+  systemd.timers.lnd-channel-backup = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "5min";
+      OnCalendar = "hourly";
+    };
+  };
+
+  systemd.services.lnd-channel-backup = {
+    unitConfig.RequiresMountsFor = "/mnt/lnd-backup";
+    serviceConfig.Type = "oneshot";
+    path = [ pkgs.diffutils ];
+    script = ''
+      cmp -s /data/lnd/chain/bitcoin/mainnet/channel.backup /mnt/lnd-backup/channel.backup && exit 0
+      install -m 600 /data/lnd/chain/bitcoin/mainnet/channel.backup /mnt/lnd-backup/channel.backup.tmp
+      mv /mnt/lnd-backup/channel.backup.tmp /mnt/lnd-backup/channel.backup
+    '';
+  };
 
   fileSystems."/data" = {
     device = "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1";
