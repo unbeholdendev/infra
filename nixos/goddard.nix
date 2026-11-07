@@ -113,7 +113,7 @@ in
     nameservers = [ "192.168.4.1" ];
     nftables.enable = true;
     firewall.extraInputRules = ''
-      ip saddr 192.168.4.12 tcp dport 10009 accept
+      ip saddr { 192.168.4.12, 192.168.1.0/24, 100.64.0.3 } tcp dport 10009 accept
       ip saddr { 192.168.4.12, 192.168.1.0/24, 100.64.0.5 } tcp dport 50002 accept
     '';
   };

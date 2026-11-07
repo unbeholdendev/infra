@@ -50,9 +50,10 @@ Either broadcasts revoked channel states and the peers can take the channel
 balances. Follow the order below.
 
 Clients keep the same address and ports. The firewall accepts LND gRPC (10009)
-from aden only, and Fulcrum SSL (50002) from aden, the LAN and the laptop's
-tailnet address. bitcoind RPC stays local. LND's macaroons carry over with its
-data, but its TLS certificate is new, so aden's clients need the new one.
+from aden, the LAN and the phone's tailnet address, and Fulcrum SSL (50002) from
+aden, the LAN and the laptop's tailnet address. bitcoind RPC stays local. LND's
+macaroons carry over with its data, but its TLS certificate is new, so its
+clients need the new one.
 
 1. On CT 100, check `bitcoind --version`, `lncli version` and `Fulcrum --version`.
    None may be newer than what bitcoinix ships, since LND and Fulcrum can't
