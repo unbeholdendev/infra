@@ -34,6 +34,16 @@
         "required_version"
       ],
       "enabled": false
+    },
+    {
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "ghcr.io/unbeholdendev/groat"
+      ],
+      "versioning": "semver",
+      "ignoreUnstable": false
     }
   ],
   "customManagers": [

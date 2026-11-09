@@ -4,6 +4,7 @@ resources:
   - flux-system
   - homepage.yaml
   - forgejo.yaml
+  - groat.yaml
   - renovate.yaml
   - metallb.yaml
   - traefik.yaml
