@@ -8,9 +8,8 @@ cluster directly. Public DNS points at Giran, which proxies over the tailnet to
 
 The whole `server.yml` lives in the SOPS Secret `config.sops.yaml`, including
 users, topic grants and tokens. Anonymous access is denied. `admin` reads and
-writes every topic; each topic has a write-only `pub-<topic>` user with one
-token, for the service that publishes there. The `pub-*` passwords are random
-and unused. Edit with `sops edit kubernetes/apps/ntfy/config.sops.yaml`; hash a
+writes every topic; `apps` may only publish, to any topic, and every publishing
+service uses one of its tokens. Edit with `sops edit kubernetes/apps/ntfy/config.sops.yaml`; hash a
 new password with `ntfy user hash` and make a token with `ntfy token generate`.
 ntfy reconciles the provisioned users on start, so roll the pod after a change:
 `kubectl -n ntfy rollout restart deployment/ntfy`.
@@ -41,7 +40,7 @@ curl --fail --resolve ntfy.unbeholden.dev:443:192.168.4.200 https://ntfy.unbehol
 
 1. Add an exact AdGuard rewrite for `ntfy.unbeholden.dev` to `192.168.4.200`.
 2. Log in on the phone as `admin` and resubscribe to each topic.
-3. Give each publisher its token from `sops -d`, as
+3. Give each publisher an `apps` token from `sops -d`, as
    `Authorization: Bearer tk_...`, or Basic auth with an empty user.
    Proxmox on `rune` posts to `http://192.168.4.12:5123` today; point it at
    `https://ntfy.unbeholden.dev/pve`. That needs a router rule from `rune` to
