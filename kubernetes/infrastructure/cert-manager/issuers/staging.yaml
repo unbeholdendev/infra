@@ -12,6 +12,7 @@ spec:
       - selector:
           dnsNames:
             - "*.home.unbeholden.dev"
+            - ntfy.unbeholden.dev
         dns01:
           webhook:
             groupName: cert-manager-webhook-spaceship.hjwylde.github.io

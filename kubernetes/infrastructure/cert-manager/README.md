@@ -13,7 +13,7 @@ Its internal serving certificates are issued by cert-manager using a private,
 self-signed CA; those do not contact Let's Encrypt or Spaceship.
 
 The issuers stage registers `letsencrypt-staging` and `letsencrypt-production`
-with `acme@unbeholden.dev`. Both select only `*.home.unbeholden.dev` and use the
+with `acme@unbeholden.dev`. Both select only `*.home.unbeholden.dev` and `ntfy.unbeholden.dev`, and use the
 encrypted Spaceship Secret. The staging issuer remains for future tests;
 there is no active staging Certificate.
 
@@ -22,7 +22,7 @@ Traefik requests one production wildcard certificate in
 account keys. Its Flux Kustomization waits for the issuers and allows twenty
 minutes for issuance. Traefik serves it as the default certificate for every
 HTTPS route; cert-manager handles renewals. A failed renewal affects them all.
-Apps need no `Certificate` or Ingress TLS section. The wildcard covers one label:
+Apps on `*.home` need no `Certificate` or Ingress TLS section; ntfy has its own. The wildcard covers one label:
 neither `home.unbeholden.dev` nor `a.b.home.unbeholden.dev`.
 
 ## Security and DNS

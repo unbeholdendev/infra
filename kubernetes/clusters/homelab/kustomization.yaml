@@ -5,6 +5,7 @@ resources:
   - homepage.yaml
   - forgejo.yaml
   - groat.yaml
+  - ntfy.yaml
   - renovate.yaml
   - metallb.yaml
   - traefik.yaml

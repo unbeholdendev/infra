@@ -81,6 +81,12 @@ the source is stopped and its complete data directory restored. Its README
 covers preparation, manual restore, validation, cutover and recovery. This stage
 does not change DNS, Flux's Git source or the old public instance.
 
+## ntfy
+
+[`apps/ntfy`](apps/ntfy/) runs ntfy with accounts and tokens declared in a SOPS
+Secret, at `ntfy.unbeholden.dev` on `.200` with its own certificate. Its README
+covers storage, cutover, publisher tokens and Giran's public route.
+
 ## Renovate
 
 [`apps/renovate`](apps/renovate/) runs daily and opens dependency update PRs on
