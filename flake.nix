@@ -1,6 +1,6 @@
 {
   inputs = {
-    bitcoinix.url = "github:bitcoinix/bitcoinix/v0.1.4";
+    bitcoinix.url = "github:bitcoinix/bitcoinix/v0.1.5";
     nixpkgs.follows = "bitcoinix/nixpkgs";
     nixpkgs-unstable.follows = "bitcoinix/nixpkgs-unstable";
     disko = {
