@@ -10,6 +10,7 @@ resources:
   - metallb.yaml
   - traefik.yaml
   - cert-manager.yaml
+  - local-path-provisioner.yaml
 patches:
   - target:
       group: kustomize.toolkit.fluxcd.io

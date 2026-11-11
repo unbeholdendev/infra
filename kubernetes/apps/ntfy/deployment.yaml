@@ -24,6 +24,35 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
         seccompProfile:
           type: RuntimeDefault
+      initContainers:
+        - name: copy-data
+          image: docker.io/binwiederhier/ntfy:v2.37.2
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              if [ ! -e /old/.copied-to-local-path ]; then
+                find /var/lib/ntfy -mindepth 1 -delete
+                find /old -mindepth 1 -maxdepth 1 -exec sh -c 'cp -a "$@" /var/lib/ntfy/' sh {} +
+                touch /old/.copied-to-local-path
+              fi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
+          volumeMounts:
+            - name: old-data
+              mountPath: /old
+            - name: data
+              mountPath: /var/lib/ntfy
       containers:
         - name: ntfy
           image: docker.io/binwiederhier/ntfy:v2.37.2
@@ -64,5 +93,8 @@ spec:
           secret:
             secretName: ntfy-config
         - name: data
+          persistentVolumeClaim:
+            claimName: storage
+        - name: old-data
           persistentVolumeClaim:
             claimName: data

@@ -14,18 +14,19 @@ new password with `ntfy user hash` and make a token with `ntfy token generate`.
 ntfy reconciles the provisioned users on start, so roll the pod after a change:
 `kubectl -n ntfy rollout restart deployment/ntfy`.
 
-The message cache and user database sit on a local PV on `talos-worker-01`.
-Losing it loses only cached messages; Git recreates the accounts.
+The message cache and user database sit on `talos-worker-01` (see Storage).
+Losing them loses only cached messages; Git recreates the accounts.
 
-## Prepare storage
+## Storage
 
-Before merging, with the working `TALOSCONFIG`:
-
-```sh
-talosctl --nodes 192.168.4.133 patch mc --patch @kubernetes/apps/ntfy/worker-volume.patch.yaml
-talosctl --nodes 192.168.4.133 get volumestatus u-ntfy
-talosctl --nodes 192.168.4.133 get mountstatus u-ntfy
-```
+The message cache and user database live on the `storage` claim from the
+`local-path` StorageClass (see
+[Local Path Provisioner](../../infrastructure/local-path-provisioner/)), on
+`talos-worker-01`. The `copy-data` init container copies them once from the old
+`data` claim, a PV on the Talos user volume `/var/mnt/ntfy`, whose root Talos
+resets to root ownership. It marks the old volume with `.copied-to-local-path`.
+A follow-up change removes the init container, the old PV and claim, and
+`worker-volume.patch.yaml`.
 
 ## Deploy and test
 

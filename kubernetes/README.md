@@ -21,6 +21,13 @@ Vaultwarden, without giving the cluster access to Vaultwarden.
 ready before Flux applies the pool configuration. See that directory's README
 for prerequisites and verification.
 
+## Local storage
+
+[`infrastructure/local-path-provisioner`](infrastructure/local-path-provisioner/)
+provides the `local-path` StorageClass on the worker. App data belongs on it,
+not on PVs pointing at a Talos user volume root, which Talos resets to root
+ownership. See its README for why and for node preparation.
+
 ## Traefik
 
 [`infrastructure/traefik`](infrastructure/traefik/) serves

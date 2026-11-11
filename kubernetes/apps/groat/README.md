@@ -6,27 +6,23 @@ The Deployment pins `ghcr.io/unbeholdendev/groat:v0.0.1-alpha15` and runs one
 replica as UID/GID 1000. `Recreate` avoids overlapping pods during upgrades.
 Do not scale it above one replica with SQLite.
 
-## Prepare storage
+## Storage
 
-Before merging, run from this checkout on the laptop with the working
-`TALOSCONFIG`. The patch is a Talos document, excluded from Kustomize.
+`/data/expenses.db` and its `.chatgpt` credential database live on the
+`storage` claim from the `local-path` StorageClass (see
+[Local Path Provisioner](../../infrastructure/local-path-provisioner/)). The
+claim binds to the node that first runs the pod, `talos-worker-01`. Its 2 GiB
+is not a quota; monitor free space on the worker. The namespace and claim opt
+out of Flux pruning, and the StorageClass retains data when a claim is deleted.
+This protects against resource removal, not loss or wiping of the worker.
+There is no automatic failover to another node.
 
-```sh
-talosctl --nodes 192.168.4.133 patch mc --patch @kubernetes/apps/groat/worker-volume.patch.yaml
-talosctl --nodes 192.168.4.133 get volumestatus u-groat
-talosctl --nodes 192.168.4.133 get mountstatus u-groat
-```
-
-Wait for the volume to be ready at `/var/mnt/groat`. Keep the patch in the
-worker's machine configuration when reprovisioning. It creates a directory on
-EPHEMERAL, with no new partition or disk formatting. The local PV pins the pod
-to `talos-worker-01`. Its 2 GiB capacity is not a quota or reservation; monitor
-free space on the worker's shared filesystem.
-
-`/data/expenses.db` and its `.chatgpt` credential database persist on this
-volume. The namespace, PV and PVC opt out of Flux pruning, and the PV uses
-`Retain`. These protect against resource removal, not loss or wiping of the
-worker. There is no automatic failover to another node.
+The `copy-data` init container copies data from the old `data` claim, a PV on the
+Talos user volume `/var/mnt/groat`. Talos reset that directory to root
+ownership after trimming EPHEMERAL, which stopped SQLite creating journal files
+there. The copy runs while the old pod is stopped and only once: it marks the
+old volume with `.copied-to-local-path`. A follow-up change removes the init
+container, the old PV and claim, and `worker-volume.patch.yaml`.
 
 ## Deploy and migrate
 

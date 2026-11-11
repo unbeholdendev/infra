@@ -1,0 +1,44 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: local-path-provisioner
+spec:
+  interval: 1h
+  url: https://github.com/rancher/local-path-provisioner
+  ref:
+    tag: v0.0.37
+  ignore: |
+    /*
+    !/deploy/chart/
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: local-path-provisioner
+spec:
+  interval: 1h
+  releaseName: local-path-provisioner
+  chart:
+    spec:
+      chart: ./deploy/chart/local-path-provisioner
+      reconcileStrategy: Revision
+      sourceRef:
+        kind: GitRepository
+        name: local-path-provisioner
+  values:
+    helperImage:
+      repository: docker.io/library/busybox
+      tag: 1.37.0
+    storageClass:
+      reclaimPolicy: Retain
+      pathPattern: "{{ .PVC.Namespace }}/{{ .PVC.Name }}/"
+    nodePathMap:
+      - node: DEFAULT_PATH_FOR_NON_LISTED_NODES
+        paths:
+          - /var/mnt/local-path-provisioner
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        memory: 128Mi
