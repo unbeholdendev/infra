@@ -42,7 +42,7 @@
       "matchPackageNames": [
         "ghcr.io/unbeholdendev/groat"
       ],
-      "versioning": "semver",
+      "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?:-(?<prerelease>[a-z]+\\d+))?$",
       "ignoreUnstable": false
     }
   ],

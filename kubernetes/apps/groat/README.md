@@ -2,7 +2,7 @@
 
 Groat runs at `https://groat.home.unbeholden.dev` through the private Traefik
 listener at `192.168.4.200`, using its existing wildcard certificate.
-The Deployment pins `ghcr.io/unbeholdendev/groat:v0.0.1-alpha10` and runs one
+The Deployment pins `ghcr.io/unbeholdendev/groat:v0.0.1-alpha15` and runs one
 replica as UID/GID 1000. `Recreate` avoids overlapping pods during upgrades.
 Do not scale it above one replica with SQLite.
 
