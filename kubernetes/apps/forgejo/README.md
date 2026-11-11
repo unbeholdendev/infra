@@ -27,6 +27,34 @@ covers the shared Traefik listener, not only Forgejo. Do not proxy it publicly.
 
 ## Storage and process
 
+Forgejo's `/data` is moving to the `storage` claim from the `local-path`
+StorageClass (see
+[Local Path Provisioner](../../infrastructure/local-path-provisioner/)), because
+Talos resets a user volume's root to root ownership. The first lines of
+`initPreScript`, in the root `init-directories` container, copy the old `data`
+claim into it once, then mark the old volume with `.copied-to-local-path`. The
+copy refuses to run if `/data` is the old volume. It needs free space on the
+worker for a second copy of the data. A follow-up change removes the copy, the
+old PV and claim, and `worker-volume.patch.yaml`; the rest of this section
+describes that old static PV.
+
+Flux fetches this repository from Forgejo, so it cannot apply a fix while
+Forgejo is down. If Forgejo does not come back after the move, roll back by
+hand; the old volume is never modified apart from the marker:
+
+```sh
+flux suspend kustomization forgejo
+flux -n forgejo suspend helmrelease forgejo
+helm -n forgejo rollback forgejo
+kubectl -n forgejo rollout status deploy/forgejo --timeout=10m
+kubectl -n forgejo exec deploy/forgejo -- rm -f /data/.copied-to-local-path
+```
+
+Removing the marker makes the next attempt copy again, so writes made after
+the rollback, including the fix, reach the new volume; `Recreate` stops Forgejo
+before the copy starts, and the copy clears the new volume first. Fix the cause
+in Git, then resume both.
+
 The static PV binds only to `forgejo/data`, on `talos-worker-01`, at
 `/var/mnt/forgejo`. No StorageClass or provisioner is installed. Talos must first
 expose that path through the directory-backed UserVolume in

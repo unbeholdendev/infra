@@ -44,8 +44,22 @@ spec:
       enabled: true
       create: false
       mount: true
-      claimName: data
+      claimName: storage
+    extraVolumes:
+      - name: old-data
+        persistentVolumeClaim:
+          claimName: data
+    extraInitVolumeMounts:
+      - name: old-data
+        mountPath: /old
     initPreScript: |
+      if [ ! -e /old/.copied-to-local-path ]; then
+        # Never clear /data when it is the old volume itself, e.g. after a partial rollback.
+        test "$(stat -c %d:%i /old)" != "$(stat -c %d:%i /data)"
+        find /data -mindepth 1 -delete
+        cp -a /old/. /data/
+        touch /old/.copied-to-local-path
+      fi
       test -f /data/.forgejo-restore-complete
       test -s /data/gitea/conf/app.ini
       test -s /data/gitea/gitea.db
