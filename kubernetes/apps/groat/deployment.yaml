@@ -24,34 +24,6 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
         seccompProfile:
           type: RuntimeDefault
-      initContainers:
-        - name: copy-data
-          image: ghcr.io/unbeholdendev/groat:v0.0.1-alpha15
-          command:
-            - /bin/sh
-            - -ec
-            - |
-              if [ ! -e /old/.copied-to-local-path ]; then
-                find /data -mindepth 1 -delete
-                find /old -mindepth 1 -maxdepth 1 -exec sh -c 'cp -a "$@" /data/' sh {} +
-                touch /old/.copied-to-local-path
-              fi
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-          resources:
-            requests:
-              cpu: 10m
-              memory: 16Mi
-            limits:
-              memory: 64Mi
-          volumeMounts:
-            - name: old-data
-              mountPath: /old
-            - name: data
-              mountPath: /data
       containers:
         - name: groat
           image: ghcr.io/unbeholdendev/groat:v0.0.1-alpha15
@@ -94,6 +66,3 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: storage
-        - name: old-data
-          persistentVolumeClaim:
-            claimName: data

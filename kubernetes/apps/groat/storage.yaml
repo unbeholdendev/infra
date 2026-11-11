@@ -1,47 +1,4 @@
 apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: groat-data
-  annotations:
-    kustomize.toolkit.fluxcd.io/prune: disabled
-spec:
-  capacity:
-    storage: 2Gi
-  volumeMode: Filesystem
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: ""
-  claimRef:
-    namespace: groat
-    name: data
-  local:
-    path: /var/mnt/groat
-  nodeAffinity:
-    required:
-      nodeSelectorTerms:
-        - matchExpressions:
-            - key: kubernetes.io/hostname
-              operator: In
-              values:
-                - talos-worker-01
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: data
-  annotations:
-    kustomize.toolkit.fluxcd.io/prune: disabled
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: ""
-  volumeName: groat-data
-  resources:
-    requests:
-      storage: 2Gi
----
-apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: storage

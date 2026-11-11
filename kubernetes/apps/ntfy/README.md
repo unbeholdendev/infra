@@ -22,11 +22,7 @@ Losing them loses only cached messages; Git recreates the accounts.
 The message cache and user database live on the `storage` claim from the
 `local-path` StorageClass (see
 [Local Path Provisioner](../../infrastructure/local-path-provisioner/)), on
-`talos-worker-01`. The `copy-data` init container copies them once from the old
-`data` claim, a PV on the Talos user volume `/var/mnt/ntfy`, whose root Talos
-resets to root ownership. It marks the old volume with `.copied-to-local-path`.
-A follow-up change removes the init container, the old PV and claim, and
-`worker-volume.patch.yaml`.
+`talos-worker-01`.
 
 ## Deploy and test
 

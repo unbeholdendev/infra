@@ -1,47 +1,4 @@
 apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: ntfy-data
-  annotations:
-    kustomize.toolkit.fluxcd.io/prune: disabled
-spec:
-  capacity:
-    storage: 1Gi
-  volumeMode: Filesystem
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: ""
-  claimRef:
-    namespace: ntfy
-    name: data
-  local:
-    path: /var/mnt/ntfy
-  nodeAffinity:
-    required:
-      nodeSelectorTerms:
-        - matchExpressions:
-            - key: kubernetes.io/hostname
-              operator: In
-              values:
-                - talos-worker-01
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: data
-  annotations:
-    kustomize.toolkit.fluxcd.io/prune: disabled
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: ""
-  volumeName: ntfy-data
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: storage

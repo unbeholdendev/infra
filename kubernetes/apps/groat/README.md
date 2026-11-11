@@ -17,13 +17,6 @@ out of Flux pruning, and the StorageClass retains data when a claim is deleted.
 This protects against resource removal, not loss or wiping of the worker.
 There is no automatic failover to another node.
 
-The `copy-data` init container copies data from the old `data` claim, a PV on the
-Talos user volume `/var/mnt/groat`. Talos reset that directory to root
-ownership after trimming EPHEMERAL, which stopped SQLite creating journal files
-there. The copy runs while the old pod is stopped and only once: it marks the
-old volume with `.copied-to-local-path`. A follow-up change removes the init
-container, the old PV and claim, and `worker-volume.patch.yaml`.
-
 ## Deploy and migrate
 
 After merge, Flux discovers the Groat Kustomization:
@@ -33,7 +26,6 @@ flux reconcile kustomization flux-system --with-source
 flux reconcile kustomization groat
 kubectl -n groat rollout status deployment/groat --timeout=5m
 kubectl -n groat get pvc,pod,service,ingress
-kubectl get pv groat-data
 ```
 
 Expect the claim Bound and the pod Ready. The probes check that `/` serves HTTP;
