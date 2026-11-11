@@ -10,8 +10,7 @@ Flux installs the maintained Forgejo chart through an OCIRepository and
 HelmRelease in `release.yaml`. Chart 17.3.2 is pinned separately from the
 application image, which stays at 16.0.6 to avoid a database upgrade during
 migration. The chart owns the Deployment, Services and Ingress; Kustomize owns
-the namespace and retained PV/PVC. The Talos worker-volume patch
-and restore pod stay manual.
+the namespace and `storage` claim. The restore pod stays manual.
 
 HTTPS uses Traefik at `192.168.4.200`. A separate LoadBalancer Service shares
 that private IP for SSH on port `222`, forwarding to the container's port `22`.
@@ -27,52 +26,17 @@ covers the shared Traefik listener, not only Forgejo. Do not proxy it publicly.
 
 ## Storage and process
 
-Forgejo's `/data` is moving to the `storage` claim from the `local-path`
-StorageClass (see
-[Local Path Provisioner](../../infrastructure/local-path-provisioner/)), because
-Talos resets a user volume's root to root ownership. The first lines of
-`initPreScript`, in the root `init-directories` container, copy the old `data`
-claim into it once, then mark the old volume with `.copied-to-local-path`. The
-copy refuses to run if `/data` is the old volume. It needs free space on the
-worker for a second copy of the data. A follow-up change removes the copy, the
-old PV and claim, and `worker-volume.patch.yaml`; the rest of this section
-describes that old static PV.
+Forgejo's `/data` is the `storage` claim from the `local-path` StorageClass (see
+[Local Path Provisioner](../../infrastructure/local-path-provisioner/)). It binds
+to the node that first runs a pod using it, `talos-worker-01`, and lives on the
+worker's EPHEMERAL filesystem, shared with images and logs. It survives pod
+restarts and node reboots, not a disk wipe, reprovision or loss of the worker.
 
-Flux fetches this repository from Forgejo, so it cannot apply a fix while
-Forgejo is down. If Forgejo does not come back after the move, roll back by
-hand; the old volume is never modified apart from the marker:
-
-```sh
-flux suspend kustomization forgejo
-flux -n forgejo suspend helmrelease forgejo
-helm -n forgejo rollback forgejo
-kubectl -n forgejo rollout status deploy/forgejo --timeout=10m
-kubectl -n forgejo exec deploy/forgejo -- rm -f /data/.copied-to-local-path
-```
-
-Removing the marker makes the next attempt copy again, so writes made after
-the rollback, including the fix, reach the new volume; `Recreate` stops Forgejo
-before the copy starts, and the copy clears the new volume first. Fix the cause
-in Git, then resume both.
-
-The static PV binds only to `forgejo/data`, on `talos-worker-01`, at
-`/var/mnt/forgejo`. No StorageClass or provisioner is installed. Talos must first
-expose that path through the directory-backed UserVolume in
-`worker-volume.patch.yaml`. Creating a hostPath alone does not make it writable
-inside kubelet on Talos 1.14.
-
-The directory uses the worker's existing Talos EPHEMERAL filesystem, shared with
-images and logs; it survives ordinary pod restarts and node reboots, not a disk
-wipe, reprovision or loss of the worker. `volumeType: directory` creates no
-partition, formats no disk and requires no resize. A partition-backed user
-volume would need unallocated disk space, which this migration does not create.
-
-The PV and claim advertise 10 GiB. This is not a reservation, partition or quota:
-watch actual worker free space and leave room for images and logs. Before this
-migration the worker had 27.3 GiB available and the source data occupied about
-2.9 GB. The namespace, claim and PV opt out of Flux pruning; the PV also uses
-`Retain`. Removing the application does not clean up its stored files. Never
-wipe the worker or delete these resources as a way to restart Forgejo.
+The claim's 10 GiB is not a reservation or quota: watch actual worker free space
+and leave room for images and logs. The namespace and claim opt out of Flux
+pruning, and the StorageClass retains data when a claim is deleted. Removing the
+application does not clean up its stored files. Never wipe the worker or delete
+these resources as a way to restart Forgejo.
 
 The standard image preserves the source's `/data` layout and OpenSSH host keys.
 Its entrypoint starts as root to set permissions and launch SSH, then runs
@@ -124,50 +88,24 @@ and the temporary zero-replica patch in place:
 ```sh
 flux get kustomizations
 kubectl -n forgejo get helmrelease,ocirepository,deployment,pvc,service
-kubectl get pv forgejo-data
 kubectl -n traefik get service
 ```
 
-Expect the Deployment at zero replicas, claim Bound and both
-LoadBalancer Services assigned `.200`. Forgejo HTTPS can return 503 while it is
-stopped. Check that Homepage still serves normally. Do not change DNS yet.
+Expect the Deployment at zero replicas and both LoadBalancer Services assigned
+`.200`. The `storage` claim stays Pending until a pod uses it. Forgejo HTTPS can
+return 503 while it is stopped. Check that Homepage still serves normally. Do
+not change DNS yet.
 
-Before creating the restore pod, apply the Talos configuration to the worker
-from the laptop, using the working `TALOSCONFIG`. This is a Talos document, not
-a Kubernetes resource: do not apply it with `kubectl` or add it to Kustomize.
-Keep it in the worker's machine configuration when reprovisioning.
-
-```sh
-talosctl --nodes 192.168.4.133 patch mc --patch @kubernetes/apps/forgejo/worker-volume.patch.yaml
-talosctl --nodes 192.168.4.133 get volumestatus u-forgejo
-talosctl --nodes 192.168.4.133 get mountstatus u-forgejo
-```
-
-Wait until the volume is ready and the mount targets `/var/mnt/forgejo`.
-This exposes a writable directory from EPHEMERAL to kubelet; do not add
-partition, filesystem or mount options to the directory-volume configuration.
-
-The manual restore pod is excluded from Kustomize. It mounts the existing Talos
-volume inside a temporary root container and refuses to create a substitute
-directory if the volume is missing. It uses `kube-system` because hostPath is
-forbidden by Forgejo's baseline policy; it does not change either namespace's
-admission policy or receive an API token.
-
-If an earlier helper is stuck in `ContainerCreating` with a read-only filesystem
-error, the failed mount has not restored any data. After the Talos volume is
-ready, delete that failed pod with `kubectl -n kube-system delete pod
-forgejo-restore --wait=true`, then recreate it from the updated manifest. Do not
-delete the PV or PVC; their paths and stored data are unchanged.
+The manual restore pod is excluded from Kustomize. It mounts the `storage` claim
+in a temporary root container on `talos-worker-01`, which binds a new claim
+there. It receives no API token. Forgejo must stay at zero replicas while it
+runs.
 
 ```sh
 kubectl apply -f kubernetes/apps/forgejo/restore-pod.yaml
-kubectl -n kube-system wait --for=condition=Ready pod/forgejo-restore --timeout=5m
-kubectl -n kube-system exec forgejo-restore -- df -h /data
+kubectl -n forgejo wait --for=condition=Ready pod/forgejo-restore --timeout=5m
+kubectl -n forgejo exec forgejo-restore -- df -h /data
 ```
-
-Stop if the pod cannot mount the directory or reports a filesystem capacity
-inconsistent with the worker disk. The local PV must use the same underlying
-host directory as this helper.
 
 ## Back up and restore
 
@@ -197,9 +135,9 @@ must contain data-directory contents, not an enclosing `data/` directory:
 
 ```sh
 tar -tzf /secure/path/forgejo-data.tar.gz | head -40
-kubectl -n kube-system exec forgejo-restore -- sh -ec 'test -z "$(ls -A /data)"'
-kubectl -n kube-system exec -i forgejo-restore -- tar -xzpf - -C /data < /secure/path/forgejo-data.tar.gz
-kubectl -n kube-system exec forgejo-restore -- sh -ec 'test -s /data/gitea/conf/app.ini; test -s /data/gitea/gitea.db; test -d /data/git/repositories; du -sh /data'
+kubectl -n forgejo exec forgejo-restore -- sh -ec 'test -z "$(ls -A /data)"'
+kubectl -n forgejo exec -i forgejo-restore -- tar -xzpf - -C /data < /secure/path/forgejo-data.tar.gz
+kubectl -n forgejo exec forgejo-restore -- sh -ec 'test -s /data/gitea/conf/app.ini; test -s /data/gitea/gitea.db; test -d /data/git/repositories; du -sh /data'
 ```
 
 Do not continue if the empty-directory check fails. Inspect existing contents
@@ -224,14 +162,14 @@ that database. Remove the disposable directory when finished. After successful
 extraction, integrity and configuration checks, explicitly authorise startup:
 
 ```sh
-kubectl -n kube-system exec forgejo-restore -- touch /data/.forgejo-restore-complete
+kubectl -n forgejo exec forgejo-restore -- touch /data/.forgejo-restore-complete
 ```
 
 Do not create that marker after a failed or partial extraction. Delete the
 helper before starting the application:
 
 ```sh
-kubectl -n kube-system delete pod forgejo-restore --wait=true
+kubectl -n forgejo delete pod forgejo-restore --wait=true
 ```
 
 ## Start and verify
@@ -333,5 +271,4 @@ filesystem. `Retain`, Proxmox storage and a surviving PVC are not backups.
 - [Forgejo backup and restore](https://forgejo.org/docs/latest/admin/setup/backup/)
 - [Talos disk layout](https://docs.siderolabs.com/talos/v1.14/configure-your-talos-cluster/storage-and-disk-management/disk-management/layout)
 - [Talos local storage](https://docs.siderolabs.com/kubernetes-guides/csi/local-storage)
-- [Talos directory-backed user volumes](https://docs.siderolabs.com/talos/v1.14/configure-your-talos-cluster/storage-and-disk-management/disk-management/user#volumetype-directory)
 - [MetalLB IP sharing](https://metallb.io/usage/#ip-address-sharing)

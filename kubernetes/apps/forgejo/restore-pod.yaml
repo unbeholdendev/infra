@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: forgejo-restore
-  namespace: kube-system
+  namespace: forgejo
 spec:
   restartPolicy: Never
   automountServiceAccountToken: false
@@ -39,6 +39,5 @@ spec:
           mountPath: /data
   volumes:
     - name: data
-      hostPath:
-        path: /var/mnt/forgejo
-        type: Directory
+      persistentVolumeClaim:
+        claimName: storage
