@@ -97,8 +97,8 @@ covers storage, cutover, publisher tokens and Giran's public route.
 ## Radicale
 
 [`apps/radicale`](apps/radicale/) runs Radicale at `cal.home.unbeholden.dev`
-on `.200`, with its htpasswd file in a SOPS Secret. Its README covers creating
-that Secret, migrating data from aden and cutover.
+on `.200`, with its htpasswd file in a SOPS Secret. Its README covers users,
+deployment and manual backups.
 
 ## Renovate
 

@@ -5,71 +5,42 @@ the private Traefik listener at `192.168.4.200`, using the wildcard certificate.
 It runs one replica as UID/GID 1000 and keeps collections on the `storage`
 claim from the `local-path` StorageClass, on `talos-worker-01`.
 
+AdGuard rewrites the name to `.200`. calrs on Giran reaches it over the tailnet
+with an `extra_hosts` entry for the name; Traefik routes by hostname, so clients
+must use the name, not the IP.
+
+## Users
+
 Radicale authenticates users itself, against an htpasswd file. The config in
 `config.yaml` is public; the htpasswd file is the SOPS Secret `users.sops.yaml`,
-key `users`. Both are mounted read-only at `/etc/radicale`. Roll the pod after
-changing either: `kubectl -n radicale rollout restart deployment/radicale`.
-
-## Create the users Secret
-
-Before merging, on the laptop, from this checkout, with aden's htpasswd file
-copied outside it (the file `htpasswd_filename` names in aden's
-`./config/config`):
+key `users`. `autodetect` accepts bcrypt hashes and plain-text passwords.
 
 ```sh
-kubectl create secret generic radicale-users --from-file=users=/secure/path/users --dry-run=client -o yaml \
-  | sops encrypt --filename-override kubernetes/apps/radicale/users.sops.yaml --input-type yaml --output-type yaml /dev/stdin \
-  > kubernetes/apps/radicale/users.sops.yaml
+sops edit kubernetes/apps/radicale/users.sops.yaml
 ```
 
-Check the file shows `ENC[` under `data`, then commit it. Plaintext never
-touches the checkout.
+Merge the change to `main`, then let Flux apply it and roll the pod, which reads
+the file only at startup:
 
-Compare aden's `./config/config` with `config.yaml` too. Carry over any
-`[rights]`, `[storage] hook` or other non-default settings; aden's paths do not
-apply here. aden runs `:latest`, which tracks Radicale's main branch; this pins
-`3.9.0`. If aden's version is newer, check the changelog for storage changes.
+```sh
+flux reconcile kustomization radicale --with-source
+kubectl -n radicale rollout restart deployment/radicale
+```
 
-## Deploy and migrate
+Hash a new password with `nix shell nixpkgs#apacheHttpd --command htpasswd -nB NAME`.
+Each user's collections live under `collections/collection-root/<name>/`, so
+renaming a user orphans their data.
+
+## Deploy and test
 
 ```sh
 flux reconcile kustomization flux-system --with-source
+flux reconcile kustomization radicale
 kubectl -n radicale rollout status deployment/radicale --timeout=5m
-kubectl -n radicale exec deploy/radicale -- sh -c 'd=/var/lib/radicale/collections/collection-root; test ! -d $d || test -z "$(ls -A $d)"'
+curl -s -u NAME -X PROPFIND -H 'Depth: 1' https://cal.home.unbeholden.dev/NAME/ | grep -o '<href>[^<]*'
 ```
 
-Radicale creates an empty `collection-root` on startup. Stop if the last
-check fails: it means some user's data is already there. Then stop Radicale on aden so nothing writes
-while copying, and stream its data directory into the pod:
-
-```sh
-ssh aden 'cd /path/to/radicale && docker compose stop radicale && tar -C data -cf - .' \
-  | kubectl -n radicale exec -i deploy/radicale -- tar -xf - -C /var/lib/radicale
-kubectl -n radicale rollout restart deployment/radicale
-kubectl -n radicale rollout status deployment/radicale --timeout=5m
-curl --fail -u USER --resolve cal.home.unbeholden.dev:443:192.168.4.200 https://cal.home.unbeholden.dev/USER/
-```
-
-The data should hold a `collections/` directory. Files land owned by UID 1000.
-Log in to `/.web/` with the same trick and check each calendar and address book.
-
-## Cut over
-
-1. Add an exact AdGuard rewrite for `cal.home.unbeholden.dev` to
-   `192.168.4.200`, replacing the one to aden.
-2. Apply the Headscale policy. It grants `amberdust@` `192.168.4.200:443`,
-   which reaches every app behind the shared listener, not only Radicale.
-3. On Giran, point calrs at `https://cal.home.unbeholden.dev`. Traefik routes
-   by hostname, so the old IP-and-port URL will not work. Giran's `.200:443`
-   grant already covers it; the name must resolve to `.200` there, as for
-   Forgejo.
-4. Check sync from each client. Keep aden's Radicale stopped.
-5. Remove the `cal` site and the `:5233` listener from Caddy on aden. Then drop
-   `aden:5233` from `tag:giran` in `playbooks/files/headscale/policy.hujson`
-   and apply it.
-
-Before step 1, rollback is starting aden's Radicale again. Once clients write
-to the cluster, copy the data back first.
+The last command lists the user's calendars and address books.
 
 ## Backups
 
@@ -78,6 +49,22 @@ the data out:
 
 ```sh
 kubectl -n radicale exec deploy/radicale -- tar -C /var/lib/radicale -cf - . > radicale-$(date +%F).tar
+```
+
+To restore, stop Radicale so nothing writes, replace the collections from a
+helper pod on the same claim, then let Flux start it again. Data written since
+the backup is lost:
+
+```sh
+flux suspend kustomization radicale
+kubectl -n radicale scale deployment/radicale --replicas=0
+kubectl -n radicale wait --for=delete pod -l app.kubernetes.io/name=radicale --timeout=2m
+kubectl -n radicale run restore --image=docker.io/library/busybox:1.38.0 --restart=Never --overrides='{"spec":{"securityContext":{"runAsNonRoot":true,"runAsUser":1000,"runAsGroup":1000,"seccompProfile":{"type":"RuntimeDefault"}},"containers":[{"name":"restore","image":"docker.io/library/busybox:1.38.0","command":["sleep","3600"],"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]}},"volumeMounts":[{"name":"data","mountPath":"/var/lib/radicale"}]}],"volumes":[{"name":"data","persistentVolumeClaim":{"claimName":"storage"}}]}}'
+kubectl -n radicale wait --for=condition=Ready pod/restore --timeout=2m
+kubectl -n radicale exec -i restore -- sh -ec 'rm -rf /var/lib/radicale/collections; tar -xf - -C /var/lib/radicale' < radicale-DATE.tar
+kubectl -n radicale delete pod restore
+flux resume kustomization radicale
+kubectl -n radicale rollout status deployment/radicale --timeout=5m
 ```
 
 A retained PVC is not a backup.
