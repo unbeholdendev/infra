@@ -126,7 +126,7 @@ To reinstall from scratch:
 2. Boot the ISO from the Proxmox console. OVMF, q35, an EFI variables disk
    without pre-enrolled keys, host CPU, VirtIO SCSI and `scsi0` match the guest
    configuration. The installer uses DHCP.
-3. Follow the dotfiles oren installation instructions, using
+3. Follow "Installing oren" in the dotfiles README, using
    `nixosConfigurations.oren` from the root-owned clone at `/srv/dotfiles`.
    Verify UEFI and `/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0`
    before running disko, which erases that disk.
