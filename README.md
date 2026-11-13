@@ -6,7 +6,7 @@ This is a mirror of my private repo.
 
 ## Dion VMs
 
-[`opentofu/dion`](opentofu/dion/) defines two Talos VMs and the proposed NixOS oren VM.
+[`opentofu/dion`](opentofu/dion/) defines two Talos VMs and the NixOS oren VM.
 Run OpenTofu from the laptop; Talos setup stays manual. See its README for state,
 credentials and the plan/apply workflow.
 

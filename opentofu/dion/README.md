@@ -128,9 +128,8 @@ checkouts and rootless Docker images than goddard's 32 GiB system disk, whose
 data lives on a separate disk. It is a starting size, not measured demand.
 
 The NIC follows the existing VMs: VirtIO on `vmbr0`, VLAN 4, with the Proxmox
-firewall enabled. Old oren remains at `192.168.4.13` in `inventory.yml` and in
-its Ansible groups. Keep the NixOS guest out of the old Debian Ansible groups;
-dotfiles manages its system configuration. Its static IPv4 configuration uses
+firewall enabled. Keep oren out of `inventory.yml`; dotfiles manages its system
+configuration and its Forgejo and GitHub credentials. Its static IPv4 configuration uses
 `192.168.4.101/24` on `ens18`, with gateway and DNS `192.168.4.1`, matching
 goddard's guest-side configuration pattern. DHCP is disabled in the installed
 guest. Before switching, verify `ens18` is the VM's VirtIO NIC and exclude

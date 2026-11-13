@@ -224,8 +224,7 @@ Once validation passes:
    its private key. Verify the existing deploy key still authorises access.
    Apply the new GitRepository URL from the laptop and verify Flux fetches the
    intended revision before resuming the Forgejo Kustomization.
-3. Update `group_vars/forgejo_clients.yml`, apply the host-scoped credential
-   helper on `oren`, and update remotes, runner instance URLs, webhooks and
+3. Update the Forgejo URL in dotfiles' `home/oren.nix`, rebuild `oren`, and update remotes, runner instance URLs, webhooks and
    OAuth callbacks. Verify authenticated Git operations and a runner job.
    The netcup snapshot workflow needs its existing secret, variable and runner;
    it does not back up Forgejo's new storage.
