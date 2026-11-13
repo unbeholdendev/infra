@@ -130,12 +130,15 @@ data lives on a separate disk. It is a starting size, not measured demand.
 The NIC follows the existing VMs: VirtIO on `vmbr0`, VLAN 4, with the Proxmox
 firewall enabled. Old oren remains at `192.168.4.13` in `inventory.yml` and in
 its Ansible groups. Keep the NixOS guest out of the old Debian Ansible groups;
-dotfiles manages its system configuration. The new guest uses DHCP; no address
-is allocated here. The owner must confirm DHCP on the services network will give this MAC a distinct address,
-check leases and reservations, and decide whether to reserve a new address.
-Do not reuse old oren's address, DNS entry or DHCP identity during installation.
-The Proxmox name is `oren-nixos`; the dotfiles guest hostname remains `oren`.
-Check that DHCP hostname registration will not overwrite the old host's DNS.
+dotfiles manages its system configuration. Its static IPv4 configuration uses
+`192.168.4.101/24` on `ens18`, with gateway and DNS `192.168.4.1`, matching
+goddard's guest-side configuration pattern. DHCP is disabled in the installed
+guest. Before switching, verify `ens18` is the VM's VirtIO NIC and exclude
+`.101` from dynamic allocation or reserve it for MAC `02:00:00:04:01:14`.
+The live installer can still use DHCP before the guest configuration is applied.
+Do not reuse old oren's address or DNS entry during installation. The Proxmox
+name is `oren-nixos`; the dotfiles guest hostname remains `oren`. Set any new
+DNS record explicitly without replacing old oren's record during migration.
 Router, DNS, DHCP and firewall policy changes are separate work. Verify the
 intended client can reach TCP 22 and 3773 through network and Proxmox rules;
 the guest opening those ports alone does not establish network access.
