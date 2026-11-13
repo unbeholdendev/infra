@@ -4,9 +4,9 @@ Ansible playbooks for the fleet, OpenTofu for VM provisioning, and backup jobs.
 
 This is a mirror of my private repo.
 
-## Dion Talos VMs
+## Dion VMs
 
-[`opentofu/dion`](opentofu/dion/) defines one control-plane VM and one worker.
+[`opentofu/dion`](opentofu/dion/) defines two Talos VMs and the proposed NixOS oren VM.
 Run OpenTofu from the laptop; Talos setup stays manual. See its README for state,
 credentials and the plan/apply workflow.
 
