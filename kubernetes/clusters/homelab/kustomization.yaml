@@ -6,6 +6,7 @@ resources:
   - forgejo.yaml
   - groat.yaml
   - ntfy.yaml
+  - radicale.yaml
   - renovate.yaml
   - metallb.yaml
   - traefik.yaml

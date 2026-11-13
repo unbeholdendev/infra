@@ -72,7 +72,7 @@ If the Deployment is still starting, wait for its pod to become Ready first.
 `HOMEPAGE_ALLOWED_HOSTS` includes the pod IP for probes and the planned
 `dashboard.home.unbeholden.dev` hostname. Homepage also allows `localhost:3000`
 and `127.0.0.1:3000` by default. This check is not authentication. HTTPS encrypts
-traffic but does not authenticate users; Caddy and Radicale remain unchanged.
+traffic but does not authenticate users; Caddy remains unchanged.
 The starter page contains links only, with no widget credentials or application
 authentication.
 
@@ -93,6 +93,12 @@ does not change DNS, Flux's Git source or the old public instance.
 [`apps/ntfy`](apps/ntfy/) runs ntfy with accounts and tokens declared in a SOPS
 Secret, at `ntfy.unbeholden.dev` on `.200` with its own certificate. Its README
 covers storage, cutover, publisher tokens and Giran's public route.
+
+## Radicale
+
+[`apps/radicale`](apps/radicale/) runs Radicale at `cal.home.unbeholden.dev`
+on `.200`, with its htpasswd file in a SOPS Secret. Its README covers creating
+that Secret, migrating data from aden and cutover.
 
 ## Renovate
 

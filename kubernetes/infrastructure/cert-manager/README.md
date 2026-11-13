@@ -84,7 +84,7 @@ only proves ACME account registration, not certificate issuance.
 
 Follow Traefik's [verification steps](../traefik/) to check the served
 certificate. Exact AdGuard rewrites point cluster hostnames to `192.168.4.200`;
-keep Caddy, Radicale and the wildcard rewrite unchanged. No public inbound access
+keep Caddy and the wildcard rewrite unchanged. No public inbound access
 is needed for issuance.
 
 Flux prunes the per-app Certificates but cert-manager retains their Secrets. Once

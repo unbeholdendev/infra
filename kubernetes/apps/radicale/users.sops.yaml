@@ -1,0 +1,21 @@
+apiVersion: v1
+data:
+    users: ENC[AES256_GCM,data:XxSHAYUfDTAMhhSQRANKdNqHBzM=,iv:Ym0o+oog06+75/ahYvHVtitY4D0rlS26TApeoIAZEYc=,tag:wjJybfp+Pk+NKjsIjZ/CaQ==,type:str]
+kind: Secret
+metadata:
+    name: radicale-users
+sops:
+    age:
+        - enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA1Q0M4Wm10ZVhXblJVaHFZ
+            L1ZieXpUWGdjbjZpaW1wSnUyazhWNExWQ3cwCno0Mm9Ob3NrOGRSMHppMlVRc1Vw
+            M2t1aVpMQS9kc3JmYkpQUzZxUVg5OEUKLS0tIDhsQUxxSlNmdjQ5eERVQjR5OWVI
+            TnJEc3JJOEhDNDdjalI0N0FreU5jMGsKJ2ulZ9SL8bct6xkaiMLvCf2Dys1/ZBXU
+            BUdjxvUPGx0E31h4t2vE2hP59Y5WVum23V8YlWJYdHxkoOfcD0e9/Q==
+            -----END AGE ENCRYPTED FILE-----
+          recipient: age1mxt9m530pkxpsr0d29fafltd8ln27yfk5sk3mnjqlrpjhq334uhsnhpuh7
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-11-13T07:53:40Z"
+    mac: ENC[AES256_GCM,data:0BZJMOgMNIk7xToWHiHBYG5eE7TM1BgaymE/6r7P16oNgolP/mVruNf10Vd9m5nl0kuXy016SXhaNDw4+aA/KualpYjBdjPs5AiF4q8tnJZY9H+sXsw9eRRV4xjtJqjZi5qURmI0WrQ6yOZHBoAMHnuIeN6h0nKbATcfbZhtJFU=,iv:ojRc7GkWmyfgGKUDUlVTL+iqyc1B+m5eli65Iua6fOM=,tag:MfycyYfIAMvwensg0/9wOQ==,type:str]
+    version: 3.13.3

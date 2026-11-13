@@ -49,8 +49,8 @@ curl --noproxy '*' --fail --show-error --connect-timeout 5 --max-time 15 -I http
 ```
 
 Open <https://dashboard.home.unbeholden.dev> in a browser. The exact AdGuard
-rewrite already points to `.200`; leave the wildcard rewrite, Caddy and
-Radicale unchanged. HTTPS is encryption, not application authentication: keep
+rewrite already points to `.200`; leave the wildcard rewrite and Caddy
+unchanged. HTTPS is encryption, not application authentication: keep
 the service private through LAN/Tailscale routing and firewall policy. No WAN
 forwarding is needed or created. Sensitive widgets or authentication need a
 separate review.
