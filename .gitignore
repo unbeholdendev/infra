@@ -8,3 +8,4 @@ galaxy_roles/
 *.tfvars.json
 crash.log
 crash.*.log
+.direnv/

@@ -9,7 +9,7 @@
     };
   };
 
-  outputs = { nixpkgs, bitcoinix, disko, ... }: {
+  outputs = { nixpkgs, nixpkgs-unstable, bitcoinix, disko, ... }: {
     nixosConfigurations.goddard = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       modules = [
@@ -18,5 +18,19 @@
         ./nixos/goddard.nix
       ];
     };
+
+    devShells.x86_64-linux.default =
+      let pkgs = nixpkgs-unstable.legacyPackages.x86_64-linux;
+      in pkgs.mkShell {
+        packages = with pkgs; [
+          ansible
+          fluxcd
+          kubectl
+          kubernetes-helm
+          opentofu
+          sops
+          talosctl
+        ];
+      };
   };
 }
