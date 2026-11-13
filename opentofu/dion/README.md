@@ -11,7 +11,7 @@ remain manual. No Talos credentials belong in this directory.
 
 For the original Talos setup only, the VMs use Dion's `local-lvm`, `vmbr0`
 and VLAN 4. For the oren addition, skip the original setup and use
-[the oren steps below](#add-the-nixos-oren-vm-alongside-the-old-host); do not
+[the oren steps below](#nixos-oren-vm); do not
 remove any existing VM. Remove the pre-Talos VM 100
 manually before applying: OpenTofu neither imports nor deletes it. Confirm IDs
 100 and 101 are free across the Proxmox cluster, check actual storage capacity,
@@ -107,10 +107,12 @@ After installation, disk boot takes priority over the ISO. To detach the ISO,
 change `cdrom.file_id` to `"none"` in `main.tf` and review another plan rather
 than changing it only in the Proxmox UI.
 
-## Add the NixOS oren VM alongside the old host
+## NixOS oren VM
 
-`oren.tf` proposes a separate VM on dion. It does not import, replace or retire
-old oren. The Talos resource addresses and definitions stay unchanged.
+`oren.tf` manages the new VM on dion alongside old oren. The installed VM
+boots from `scsi0`; its CD-ROM is empty. A full plan should show only ISO
+detachment if it is still attached, or no changes if it was detached in the UI.
+Stop if the plan replaces a VM or changes another resource.
 
 | Proxmox name | ID | vCPU | RAM | System disk | MAC |
 | --- | --- | --- | --- | --- | --- |
@@ -127,21 +129,25 @@ data lives on a separate disk. It is a starting size, not measured demand.
 
 The NIC follows the existing VMs: VirtIO on `vmbr0`, VLAN 4, with the Proxmox
 firewall enabled. Old oren remains at `192.168.4.13` in `inventory.yml` and in
-its Ansible groups. No new Ansible entry is added because the NixOS guest has
-SSH disabled. The new guest uses DHCP; no address is allocated here. The owner
-must confirm DHCP on the services network will give this MAC a distinct address,
+its Ansible groups. Keep the NixOS guest out of the old Debian Ansible groups;
+dotfiles manages its system configuration. The new guest uses DHCP; no address
+is allocated here. The owner must confirm DHCP on the services network will give this MAC a distinct address,
 check leases and reservations, and decide whether to reserve a new address.
 Do not reuse old oren's address, DNS entry or DHCP identity during installation.
 The Proxmox name is `oren-nixos`; the dotfiles guest hostname remains `oren`.
 Check that DHCP hostname registration will not overwrite the old host's DNS.
 Router, DNS, DHCP and firewall policy changes are separate work. Verify the
-intended client can reach TCP 3773 through existing network and Proxmox rules;
-the guest opening that port alone does not establish network access.
+intended client can reach TCP 22 and 3773 through network and Proxmox rules;
+the guest opening those ports alone does not establish network access.
 
-1. Finish uploading the NixOS 26.05 minimal x86_64 ISO on dion's `local` storage
-   as `nixos-minimal-26.05-x86_64-linux.iso`. Check its source and checksum.
-   The resource attaches `local:iso/nixos-minimal-26.05-x86_64-linux.iso`;
-   it does not download or verify the ISO.
+For a fresh installation, follow these steps. Do not repeat disko on the
+installed VM.
+
+1. Upload the NixOS 26.05 minimal x86_64 ISO to dion's `local` storage as
+   `nixos-minimal-26.05-x86_64-linux.iso`. Check its source and checksum.
+   Temporarily set `oren.tf`'s `cdrom.file_id` to
+   `"local:iso/nixos-minimal-26.05-x86_64-linux.iso"`. OpenTofu does not
+   download or verify the ISO.
 2. Use the existing dion backend path above, including its current Talos state.
    Extend the API token scope only to the confirmed new VM ID. Review a full
    `tofu plan`. With the Talos VMs already managed, expect exactly one addition,
@@ -155,11 +161,10 @@ the guest opening that port alone does not establish network access.
    variables disk without pre-enrolled keys, host CPU, VirtIO SCSI and `scsi0`
    match the guest configuration. Agent IP waiting stays disabled during
    installation; find the new address in the console or router leases.
-4. Follow the installation and runtime checks in
-   the dotfiles oren VM change
-   after its configuration has merged and its real build passes on a suitable
-   builder. Use `nixosConfigurations.oren` from the root-owned dotfiles clone,
-   not this repository's `nixos/` configuration. Use this VM's proposed
+4. Follow the dotfiles oren installation instructions. The base ISO runs the
+   installer; `nixos-install` downloads and builds the guest configuration
+   inside the VM. Use `nixosConfigurations.oren` from the root-owned dotfiles
+   clone, not this repository's `nixos/` configuration. Use this VM's proposed
    8 vCPU, 16 GiB RAM and 256 GiB disk.
    Verify UEFI and
    `/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0` in the console before
@@ -167,13 +172,23 @@ the guest opening that port alone does not establish network access.
 5. After installation, set only `oren.tf`'s `cdrom.file_id` to `"none"` and
    review another plan before applying. Boot from `scsi0` and verify the QEMU
    guest agent, root console login, the unprivileged `agent` session, rootless
-   Docker and Compose, and T3 pairing on TCP 3773. SSH stays disabled; do not
+   Docker and Compose, and T3 pairing on TCP 3773.
+6. Apply dotfiles' key-only SSH configuration from the VM's root console:
+
+   ```sh
+   cd /srv/dotfiles
+   git pull --ff-only
+   nixos-rebuild switch --flake /srv/dotfiles#oren
+   ```
+
+   Connect from the T14 or T460s with `ssh root@<VM-IP>`. Password SSH login
+   is disabled. Use `machinectl shell agent@` for the agent session. Do not
    use the old Ansible playbooks to install Docker or root's Forgejo token.
 
 The guest configuration belongs to dotfiles. Moving T3 state and credentials,
 cutting over addresses or DNS, and retiring the old host and its inventory or
 playbooks are separate work. Keep the old host running until those steps are
-agreed and checked. No live plan or installation has been verified by this change.
+agreed and checked. Review a live plan before applying this cleanup.
 
 ## Later changes
 

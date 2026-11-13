@@ -45,7 +45,7 @@ resource "proxmox_virtual_environment_vm" "oren" {
   }
 
   cdrom {
-    file_id   = "local:iso/nixos-minimal-26.05-x86_64-linux.iso"
+    file_id   = "none"
     interface = "ide2"
   }
 
