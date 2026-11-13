@@ -37,7 +37,7 @@ resource "proxmox_virtual_environment_vm" "goddard" {
 
   memory {
     dedicated = 8192
-    floating  = 0
+    floating  = 8192
   }
 
   agent {

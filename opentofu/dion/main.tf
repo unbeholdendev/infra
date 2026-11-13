@@ -55,7 +55,7 @@ resource "proxmox_virtual_environment_vm" "talos" {
 
   memory {
     dedicated = each.value.memory
-    floating  = 0
+    floating  = each.value.memory
   }
 
   agent {

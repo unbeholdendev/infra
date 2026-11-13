@@ -17,7 +17,7 @@ resource "proxmox_virtual_environment_vm" "oren" {
 
   memory {
     dedicated = 16384
-    floating  = 0
+    floating  = 16384
   }
 
   agent {
