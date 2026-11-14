@@ -256,12 +256,38 @@ Keep a copy of this repository and the deployment instructions outside Forgejo,
 alongside the SOPS identity recovery described in `kubernetes/SECRETS.md`.
 Recovering the Git server must not depend on fetching these manifests from it.
 
-The migration archive is not an ongoing backup policy. Before relying on this
-instance, arrange regular consistent backups of the full data directory to
-storage outside this worker and test a restore. Stop Forgejo for a filesystem
-backup or use a documented application-consistent method. Store encryption keys
-and configuration with the backup. Monitor free disk space on the shared worker
-filesystem. `Retain`, Proxmox storage and a surviving PVC are not backups.
+[K8up](../../infrastructure/k8up/) backs up Forgejo nightly at 01:00 UTC. It
+runs `forgejo dump` inside the pod through the `k8up.io/backupcommand`
+annotation and streams the tar into the restic repository `forgejo` on TrueNAS.
+The PVC itself is excluded, so the live SQLite file is never copied. Retention
+is 7 daily, 4 weekly and 3 monthly. The dump holds `app.ini`, the data
+directory, repositories and `forgejo-db.sql`. It does not hold the SSH host keys
+in `/data/ssh`, so after a restore clients see a new host key.
+
+The restic password and rest-server credentials are in the shared
+[`k8up-backup`](../../components/k8up-backup/) component and in Vaultwarden. Without them the backups cannot be read.
+
+To restore, fetch the dump on the laptop and rebuild the data-directory layout
+that [Back up and restore](#back-up-and-restore) expects:
+
+```sh
+umask 077
+export RESTIC_REPOSITORY=rest:http://k8up:PASSWORD@192.168.5.2:30800/forgejo RESTIC_PASSWORD=...
+nix shell nixpkgs#restic --command restic snapshots
+nix shell nixpkgs#restic --command restic ls latest
+nix shell nixpkgs#restic --command restic dump latest /PATH-FROM-LS > forgejo-dump.tar
+d=$(mktemp -d); mkdir -p "$d/out/gitea" "$d/out/git"
+tar -xf forgejo-dump.tar -C "$d"
+cp -a "$d/data/." "$d/out/gitea/"
+mv "$d/repos" "$d/out/git/repositories"
+rm -f "$d"/out/gitea/gitea.db*
+nix shell nixpkgs#sqlite --command sqlite3 "$d/out/gitea/gitea.db" < "$d/forgejo-db.sql"
+tar -C "$d/out" --owner=1000 --group=1000 --numeric-owner -czpf forgejo-data.tar.gz .
+```
+
+Test a restore after the first backup and after major Forgejo upgrades. Monitor
+free disk space on the shared worker filesystem. `Retain`, Proxmox storage and a
+surviving PVC are not backups.
 
 ## References
 

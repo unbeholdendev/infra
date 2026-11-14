@@ -1,0 +1,28 @@
+apiVersion: k8up.io/v1
+kind: Schedule
+metadata:
+  name: backup
+spec:
+  backend:
+    repoPasswordSecretRef:
+      name: backup
+      key: RESTIC_PASSWORD
+    rest:
+      url: http://192.168.5.2:30800/forgejo
+      userSecretRef:
+        name: backup
+        key: REST_USER
+      # K8up's field name really is misspelt.
+      passwordSecretReg:
+        name: backup
+        key: REST_PASSWORD
+  backup:
+    schedule: "0 1 * * *"
+  check:
+    schedule: "0 4 * * 0"
+  prune:
+    schedule: "0 2 * * 0"
+    retention:
+      keepDaily: 7
+      keepWeekly: 4
+      keepMonthly: 3

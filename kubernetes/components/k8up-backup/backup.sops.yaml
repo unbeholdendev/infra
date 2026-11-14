@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: backup
+type: Opaque
+stringData:
+    RESTIC_PASSWORD: ENC[AES256_GCM,data:UgWySuy/0yBp5WW5GP4=,iv:4GzlEq8/W8F6UtuKIKTAu0GKY4F4E2IoOO4Bqo+vU2M=,tag:08Pu9/vMRTua+Mwlu06lsA==,type:str]
+    REST_USER: ENC[AES256_GCM,data:yvcMag==,iv:yHHNldsSOK+r34LudBXGwj02636V9kgvbKMohMmk2VM=,tag:szLQaWsRJvWUpLD5D1vqHA==,type:str]
+    REST_PASSWORD: ENC[AES256_GCM,data:Qdiq5xYxzjwrSXef0mo=,iv:YYVf71+Mcu99JIYjHB6wdiayfgMbxRKPQ4ISycdufAM=,tag:F3N1JdKzWikaWMgHcYWKGw==,type:str]
+sops:
+    age:
+        - enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBtcXNUMlh2UkZXMTlhbFV5
+            SlhrYXNheVVkRE9nWTlzL25tam1UeWZHa1FRCnhuQkVUV2gwYWc1TFVwOVNLOTBQ
+            K3NQUStPcVArdW9nK3gyM0V3QVd0MTgKLS0tIFRiNFJaNHFTV2NRcWlwNWlXSVgx
+            MS8yVUp3VGk4b0tadXMrY0xUSzBqZVUKdLDG+xps9ncIxyqSq81iUPVaNMFei3HM
+            tI6xE5uxnHmtlueIGto9Fx8XsopRWHYARM85uNZWnybKR8ZVjF+oOw==
+            -----END AGE ENCRYPTED FILE-----
+          recipient: age1mxt9m530pkxpsr0d29fafltd8ln27yfk5sk3mnjqlrpjhq334uhsnhpuh7
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-11-14T09:51:31Z"
+    mac: ENC[AES256_GCM,data:RoJzO4sIUGkdua8/aPcKZv6VnAiKHx+AGg9g4Lj3/C9vp2BsC5l48jW58+IZDcTMITbVjFNo41f//jmoGnjW36TOc5iXU5OZNlMKnkpy+fmG3l2uuMAssFEdTzGVW/2XacrW6E8RlLEAmAGBK0zHgh3BoVY+m1E4OoLDkBRlWng=,iv:RuNKFxCFtXsYVZW+vorivFhEaOoZ7M4RAzIh6AjClHE=,tag:nHVqlfEfD8ekoUhmXczgYQ==,type:str]
+    version: 3.13.3

@@ -58,6 +58,9 @@ spec:
         - name: USER_GID
           value: "1000"
     gitea:
+      podAnnotations:
+        k8up.io/backupcommand: su-exec git forgejo dump --config /data/gitea/conf/app.ini --file - --type tar --skip-log --skip-index --skip-repo-archives
+        k8up.io/file-extension: .tar
       admin:
         username: ""
         existingSecret: ""
