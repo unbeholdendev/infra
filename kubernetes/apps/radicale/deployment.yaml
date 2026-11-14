@@ -26,7 +26,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: radicale
-          image: ghcr.io/kozea/radicale:3.9.0
+          image: ghcr.io/kozea/radicale:3.9.1
           args:
             - --config
             - /etc/radicale/config
