@@ -82,17 +82,15 @@ remain unhealthy until the Deployment is ready.
 
 ## Forgejo
 
-[`apps/forgejo`](apps/forgejo/) prepares the private Forgejo migration with a
-retained worker-local volume, HTTPS and SSH. The Deployment stays stopped until
-the source is stopped and its complete data directory restored. Its README
-covers preparation, manual restore, validation, cutover and recovery. This stage
-does not change DNS, Flux's Git source or the old public instance.
+[`apps/forgejo`](apps/forgejo/) runs Forgejo at `git.home.unbeholden.dev` on
+`.200`, with HTTPS and SSH on port 222, and Flux fetches this repository from
+it. Its README covers storage, backups and restores.
 
 ## ntfy
 
 [`apps/ntfy`](apps/ntfy/) runs ntfy with accounts and tokens declared in a SOPS
 Secret, at `ntfy.unbeholden.dev` on `.200` with its own certificate. Its README
-covers storage, cutover, publisher tokens and Giran's public route.
+covers storage, publisher tokens and Giran's public route.
 
 ## Radicale
 
@@ -104,13 +102,13 @@ deployment and manual backups.
 
 [`apps/umami`](apps/umami/) runs Umami and its own Postgres at
 `umami.unbeholden.dev` on `.200`, proxied publicly by Giran. Its README covers
-backups and the cutover from aden.
+backups, restores and Giran's route.
 
 ## Vaultwarden
 
 [`apps/vaultwarden`](apps/vaultwarden/) runs Vaultwarden at
 `vw.home.unbeholden.dev` on `.200`, with signups off. Its README covers
-backups, restores and the cutover from aden.
+users, backups and restores.
 
 ## Renovate
 

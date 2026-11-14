@@ -56,18 +56,3 @@ kubectl -n vaultwarden rollout status deployment/vaultwarden --timeout=5m
 
 The listing must show `db.sqlite3` and `rsa_key.pem`. A new `rsa_key.pem`
 logs every client out.
-
-## Cut over from aden
-
-1. On aden, stop the container, then archive its bind mount without the icon
-   cache and the admin page's `config.json`, which would override the
-   environment, including `DOMAIN`:
-   `tar -C /root/vw-data -cf vaultwarden-aden.tar --exclude=./icon_cache --exclude=./config.json --exclude=./.DS_Store .`
-2. Restore that tar with the steps above. It already holds `db.sqlite3`.
-3. Log in to the web vault through the `--resolve` address and open an item
-   with an attachment, if any.
-4. Add an exact AdGuard rewrite for `vw.home.unbeholden.dev` to
-   `192.168.4.200`. Clients keep the same server URL; the shared user's tailnet
-   grant already covers `.200:443`.
-5. Remove the container and its proxy route on aden. Then drop `aden:443` from
-   the shared user's grant in `playbooks/files/headscale/policy.hujson`.

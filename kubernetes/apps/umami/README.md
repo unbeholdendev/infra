@@ -46,18 +46,11 @@ kubectl -n umami rollout status deployment/postgres deployment/umami --timeout=5
 curl --fail --resolve umami.unbeholden.dev:443:192.168.4.200 https://umami.unbeholden.dev/api/heartbeat
 ```
 
-## Cut over from aden
+## Giran route
 
-1. On aden, stop the app so no events arrive mid-copy, then dump:
-   `docker compose stop umami && docker compose exec -T db pg_dump -U umami -d umami -Fc > umami.dump`
-2. Restore it with the commands under Backups, then log in with the old
-   accounts at `https://umami.unbeholden.dev` via the `--resolve` address.
-3. Add an exact AdGuard rewrite for `umami.unbeholden.dev` to `192.168.4.200`.
-4. On Giran, point the Dokploy route for `umami.unbeholden.dev` at
-   `https://192.168.4.200`, keeping the Host header, with
-   `serverName: umami.unbeholden.dev` in its servers transport.
-5. Check a tracked site records a visit with the right country, then remove
-   Umami from aden and drop `aden:3123` from `tag:giran` in
-   `playbooks/files/headscale/policy.hujson`.
-
-The new `APP_SECRET` logs everyone out once.
+Giran's Dokploy Traefik routes `umami.unbeholden.dev` to `https://192.168.4.200`,
+passing the Host header, with `serverName: umami.unbeholden.dev` in its servers
+transport so the certificate check passes. Giran's `X-Forwarded-For` reaches
+Umami because Traefik trusts it from the cluster (see
+[Traefik](../../infrastructure/traefik/)); a visit from outside should show the
+right country.

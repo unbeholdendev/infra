@@ -33,22 +33,17 @@ kubectl -n ntfy rollout status deployment/ntfy --timeout=5m
 curl --fail --resolve ntfy.unbeholden.dev:443:192.168.4.200 https://ntfy.unbeholden.dev/v1/health
 ```
 
-## Cut over
+## Giran route
 
-1. Add an exact AdGuard rewrite for `ntfy.unbeholden.dev` to `192.168.4.200`.
-2. Log in on the phone as `admin` and resubscribe to each topic.
-3. Give each publisher an `apps` token from `sops -d`, as
-   `Authorization: Bearer tk_...`, or Basic auth with an empty user.
-   Proxmox on `rune` posts to `http://192.168.4.12:5123` today; point it at
-   `https://ntfy.unbeholden.dev/pve`. That needs a router rule from `rune` to
-   `192.168.4.200` tcp/443.
-4. On Giran, point the Dokploy route for `ntfy.unbeholden.dev` at
-   `https://192.168.4.200`, keeping the Host header, with
-   `serverName: ntfy.unbeholden.dev` in its servers transport so the
-   certificate check passes. Giran's `.200:443` grant already covers it.
-5. Stop ntfy on `aden`. Then drop `aden:5123` from `tag:giran` in
-   `playbooks/files/headscale/policy.hujson`, apply it, and remove the router
-   rule `rune_ntfy`.
+Giran's Dokploy Traefik routes `ntfy.unbeholden.dev` to `https://192.168.4.200`,
+passing the Host header, with `serverName: ntfy.unbeholden.dev` in its servers
+transport so the certificate check passes.
+
+## Publishers
+
+Each publisher uses an `apps` token from `sops -d`, as
+`Authorization: Bearer tk_...`, or Basic auth with an empty user. Proxmox on
+`rune` posts to `https://ntfy.unbeholden.dev/pve`.
 
 Rate limits key on the user for authenticated requests. Unless `behind-proxy`
 is set, ntfy keys per-IP limits on the connection, a cluster address for every
