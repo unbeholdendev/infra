@@ -8,6 +8,7 @@ resources:
   - ntfy.yaml
   - radicale.yaml
   - renovate.yaml
+  - umami.yaml
   - metallb.yaml
   - traefik.yaml
   - cert-manager.yaml

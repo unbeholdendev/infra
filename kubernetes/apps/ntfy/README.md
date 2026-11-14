@@ -50,6 +50,6 @@ curl --fail --resolve ntfy.unbeholden.dev:443:192.168.4.200 https://ntfy.unbehol
    `playbooks/files/headscale/policy.hujson`, apply it, and remove the router
    rule `rune_ntfy`.
 
-Rate limits key on the user for authenticated requests. Traefik does not trust
-forwarded headers, so ntfy sees a cluster address for every client; only the
-per-IP login-failure limit is shared.
+Rate limits key on the user for authenticated requests. Unless `behind-proxy`
+is set, ntfy keys per-IP limits on the connection, a cluster address for every
+client; only the per-IP login-failure limit is then shared.

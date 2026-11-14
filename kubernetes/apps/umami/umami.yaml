@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: umami
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: umami
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: umami
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: umami
+          image: ghcr.io/umami-software/umami:3.5.0
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: umami
+                  key: DATABASE_URL
+            - name: APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: umami
+                  key: APP_SECRET
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: http
+              containerPort: 3000
+          resources:
+            requests:
+              cpu: 20m
+              memory: 192Mi
+            limits:
+              memory: 768Mi
+          startupProbe:
+            httpGet:
+              path: /api/heartbeat
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /api/heartbeat
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /api/heartbeat
+              port: http
+            periodSeconds: 30
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: umami
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: umami
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http

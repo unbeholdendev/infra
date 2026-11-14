@@ -100,6 +100,12 @@ covers storage, cutover, publisher tokens and Giran's public route.
 on `.200`, with its htpasswd file in a SOPS Secret. Its README covers users,
 deployment and manual backups.
 
+## Umami
+
+[`apps/umami`](apps/umami/) runs Umami and its own Postgres at
+`umami.unbeholden.dev` on `.200`, proxied publicly by Giran. Its README covers
+backups and the cutover from aden.
+
 ## Renovate
 
 [`apps/renovate`](apps/renovate/) runs daily and opens dependency update PRs on

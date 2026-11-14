@@ -22,6 +22,13 @@ Traefik, and apps wait until the wildcard is Ready. Existing pod and port-forwar
 access remains available while dependencies become ready. A proxy rollout or the
 separate Helm/Ingress reconciliations may briefly interrupt routing.
 
+The Service's `Cluster` traffic policy rewrites every client's address to a
+node or pod-network address. `websecure` therefore trusts `X-Forwarded-*` from
+the node IPs and the pod network, so apps behind Giran, such as Umami, see the
+visitor's address that Giran sets. Internet clients cannot forge it, because
+Giran overwrites the header; LAN and tailnet clients can. Update the list if a
+node's address changes.
+
 ## Verify after merge
 
 Flux detects the merge automatically. On the laptop:
