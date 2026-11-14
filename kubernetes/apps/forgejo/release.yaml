@@ -26,7 +26,7 @@ spec:
     image:
       registry: codeberg.org
       repository: forgejo/forgejo
-      tag: 16.0.7
+      tag: 17.0.1
       rootless: false
     strategy:
       type: Recreate

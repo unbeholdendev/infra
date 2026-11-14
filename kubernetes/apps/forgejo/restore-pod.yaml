@@ -13,7 +13,7 @@ spec:
       type: RuntimeDefault
   containers:
     - name: restore
-      image: codeberg.org/forgejo/forgejo:16.0.7
+      image: codeberg.org/forgejo/forgejo:17.0.1
       command:
         - /bin/sh
         - -ec
