@@ -268,21 +268,40 @@ The restic password and rest-server credentials are in the shared
 [`k8up-backup`](../../components/k8up-backup/) component and in Vaultwarden. Without them the backups cannot be read.
 
 To restore, fetch the dump on the laptop and rebuild the data-directory layout
-that [Back up and restore](#back-up-and-restore) expects:
+that [Back up and restore](#back-up-and-restore) expects. Allow about three
+times the dump size in free space. From this checkout:
 
 ```sh
 umask 077
-export RESTIC_REPOSITORY=rest:http://k8up:PASSWORD@192.168.5.2:30800/forgejo RESTIC_PASSWORD=...
-nix shell nixpkgs#restic --command restic snapshots
-nix shell nixpkgs#restic --command restic ls latest
-nix shell nixpkgs#restic --command restic dump latest /PATH-FROM-LS > forgejo-dump.tar
-d=$(mktemp -d); mkdir -p "$d/out/gitea" "$d/out/git"
-tar -xf forgejo-dump.tar -C "$d"
-cp -a "$d/data/." "$d/out/gitea/"
-mv "$d/repos" "$d/out/git/repositories"
-rm -f "$d"/out/gitea/gitea.db*
-nix shell nixpkgs#sqlite --command sqlite3 "$d/out/gitea/gitea.db" < "$d/forgejo-db.sql"
-tar -C "$d/out" --owner=1000 --group=1000 --numeric-owner -czpf forgejo-data.tar.gz .
+f=kubernetes/components/k8up-backup/backup.sops.yaml
+export RESTIC_PASSWORD="$(sops -d --extract '["stringData"]["RESTIC_PASSWORD"]' $f)"
+rest_pw="$(sops -d --extract '["stringData"]["REST_PASSWORD"]' $f)"
+export RESTIC_REPOSITORY="rest:http://k8up:${rest_pw}@192.168.5.2:30800/forgejo"
+alias restic='nix shell nixpkgs#restic --command restic'
+restic snapshots
+d=$(mktemp -d); cd "$d"; mkdir -p dump out/gitea out/git
+restic dump latest /forgejo-forgejo.tar > forgejo-dump.tar
+tar -xf forgejo-dump.tar -C dump
+cp -a dump/data/. out/gitea/
+mv dump/repos out/git/repositories
+find out/gitea -maxdepth 1 -name 'gitea.db*' -delete
+{ echo 'BEGIN;'; cat dump/forgejo-db.sql; echo 'COMMIT;'; } |
+  nix shell nixpkgs#sqlite --command sqlite3 out/gitea/gitea.db
+tar -C out --owner=1000 --group=1000 --numeric-owner -czpf forgejo-data.tar.gz .
+```
+
+`restic ls latest` names the dump if `/forgejo-forgejo.tar` is not found. A
+REST password containing `@`, `:` or `/` must be percent-encoded in the URL.
+
+To test a restore without the cluster, stop before the final `tar` and check
+that the database is intact, that the repository count matches the live
+instance and that a repository passes `git fsck`:
+
+```sh
+nix shell nixpkgs#sqlite --command sqlite3 out/gitea/gitea.db 'PRAGMA integrity_check;'
+find out/git/repositories -mindepth 2 -maxdepth 2 -name '*.git' | wc -l
+kubectl -n forgejo exec deploy/forgejo -- sh -c 'find /data/git/repositories -mindepth 2 -maxdepth 2 -name "*.git" | wc -l'
+git -C "$(find out/git/repositories -mindepth 2 -maxdepth 2 -name '*.git' | head -1)" fsck
 ```
 
 Test a restore after the first backup and after major Forgejo upgrades. Monitor
