@@ -44,11 +44,21 @@ The last command lists the user's calendars and address books.
 
 ## Backups
 
-None automatic yet; they wait on K8up (#84). Until then, before upgrades, copy
-the data out:
+[K8up](../../infrastructure/k8up/) backs up Radicale nightly at 01:00 UTC. The
+pod annotation tars `/var/lib/radicale` inside the pod, holding a shared lock on
+Radicale's `.Radicale.lock` so no write runs mid-archive, and streams it into
+the restic repository `radicale`. To fetch the latest, set up restic as in
+[Read a repository](../../infrastructure/k8up/README.md#read-a-repository)
+with `repo=radicale`:
 
 ```sh
-kubectl -n radicale exec deploy/radicale -- tar -C /var/lib/radicale -cf - . > radicale-$(date +%F).tar
+restic dump latest /radicale-radicale.tar > radicale-DATE.tar
+```
+
+Before upgrades, a copy taken now is quicker:
+
+```sh
+kubectl -n radicale exec deploy/radicale -- flock -s /var/lib/radicale/collections/.Radicale.lock tar -C /var/lib/radicale -cf - . > radicale-$(date +%F).tar
 ```
 
 To restore, stop Radicale so nothing writes, replace the collections from a

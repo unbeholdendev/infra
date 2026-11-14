@@ -14,6 +14,10 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: groat
+      annotations:
+        k8up.io/backupcommand: >-
+          bun -e 'const {Database}=require("bun:sqlite"),fs=require("fs"),f="/tmp/k8up-backup.sqlite";fs.rmSync(f,{force:true});new Database(process.env.DB_PATH,{readonly:true}).run("VACUUM INTO ?",[f]);await Bun.write(Bun.stdout,Bun.file(f));fs.rmSync(f)'
+        k8up.io/file-extension: .sqlite
     spec:
       automountServiceAccountToken: false
       securityContext:

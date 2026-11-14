@@ -8,7 +8,21 @@ rest-server at `http://192.168.5.2:30800/<app>`.
 K8up backs up every PVC in a namespace with a `Schedule` unless the PVC has
 `k8up.io/backup: "false"`. Prefer an app's own dump through the pod annotations
 `k8up.io/backupcommand` and `k8up.io/file-extension`: a live database file is not
-a consistent backup. See [Forgejo](../../apps/forgejo/) for the pattern.
+a consistent backup. K8up splits the command on spaces and quotes and runs it
+without a shell, and stores its stdout as `/<namespace>-<container><extension>`.
+
+Forgejo, Groat and Radicale are backed up. ntfy holds only cached messages,
+and Homepage and Renovate keep no state.
+
+To back up an app:
+
+1. List `../../components/k8up-backup` under `components` in its
+   `kustomization.yaml`. The component adds the `backup` Secret, the nightly
+   `Schedule` and a restricted `PodConfig` for K8up's job pods. The repository
+   is named after the app's Namespace.
+2. Add the backup annotations to the pod and `k8up.io/backup: "false"` to the PVC.
+3. Add `k8up` to `dependsOn` in its Flux Kustomization under
+   `clusters/homelab`, so the CRDs exist first.
 
 ## TrueNAS rest-server
 
@@ -37,7 +51,8 @@ kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n k8up get helmrelease,po
 kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n forgejo get schedule,backup,snapshots
 ```
 
-To run a backup now rather than wait for the schedule:
+To run a backup now rather than wait for the schedule, replacing `forgejo`
+in both places with the app:
 
 ```sh
 kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n forgejo create -f - <<'EOF'
@@ -46,6 +61,7 @@ kind: Backup
 metadata:
   generateName: manual-
 spec:
+  podConfigRef: {name: backup}
   backend:
     repoPasswordSecretRef: {name: backup, key: RESTIC_PASSWORD}
     rest:
@@ -54,6 +70,22 @@ spec:
       passwordSecretReg: {name: backup, key: REST_PASSWORD}
 EOF
 ```
+
+## Read a repository
+
+On the laptop, from this checkout, with `repo` set to the app:
+
+```sh
+umask 077
+f=kubernetes/components/k8up-backup/backup.sops.yaml
+export RESTIC_PASSWORD="$(sops -d --extract '["stringData"]["RESTIC_PASSWORD"]' $f)"
+rest_pw="$(sops -d --extract '["stringData"]["REST_PASSWORD"]' $f)"
+export RESTIC_REPOSITORY="rest:http://k8up:${rest_pw}@192.168.5.2:30800/$repo"
+alias restic='nix shell nixpkgs#restic --command restic'
+restic snapshots
+```
+
+A REST password containing `@`, `:` or `/` must be percent-encoded in the URL.
 
 ## References
 

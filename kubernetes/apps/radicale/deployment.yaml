@@ -14,6 +14,10 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: radicale
+      annotations:
+        k8up.io/backupcommand: >-
+          flock -s /var/lib/radicale/collections/.Radicale.lock tar -C /var/lib/radicale -cf - .
+        k8up.io/file-extension: .tar
     spec:
       automountServiceAccountToken: false
       securityContext:

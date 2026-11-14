@@ -66,6 +66,29 @@ migrations run on startup, so reverting an image tag alone may not undo an
 upgrade. Recovery may need a fresh volume and restoration into a compatible
 version. Test restore before relying on this instance for real data.
 
-Automated off-worker backups are pending K8up PR #84 and a Groat backup
-integration. Until then, download backups regularly and after important changes.
-Do not copy a live SQLite file as a backup. A retained PVC is not a backup.
+[K8up](../../infrastructure/k8up/) backs up Groat nightly at 01:00 UTC into the
+restic repository `groat`. The pod annotation runs SQLite's `VACUUM INTO` through
+`bun` and streams the copy, so the live file is never copied. Unlike a
+downloaded backup, it keeps sign-ins, API tokens, chats and AI provider keys.
+The `.chatgpt` credential file is not backed up; reconnect ChatGPT after
+restoring onto a new volume.
+
+To restore, set up restic as in
+[Read a repository](../../infrastructure/k8up/README.md#read-a-repository)
+with `repo=groat`, then replace the database with Groat stopped. Use the same
+or a newer image than the backup. Data written since the backup is lost:
+
+```sh
+restic dump latest /groat-groat.sqlite > expenses.db
+flux suspend kustomization groat
+kubectl -n groat scale deployment/groat --replicas=0
+kubectl -n groat wait --for=delete pod -l app.kubernetes.io/name=groat --timeout=2m
+kubectl -n groat run restore --image=docker.io/library/busybox:1.38.0 --restart=Never --overrides='{"spec":{"securityContext":{"runAsNonRoot":true,"runAsUser":1000,"runAsGroup":1000,"seccompProfile":{"type":"RuntimeDefault"}},"containers":[{"name":"restore","image":"docker.io/library/busybox:1.38.0","command":["sleep","3600"],"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]}},"volumeMounts":[{"name":"data","mountPath":"/data"}]}],"volumes":[{"name":"data","persistentVolumeClaim":{"claimName":"storage"}}]}}'
+kubectl -n groat wait --for=condition=Ready pod/restore --timeout=2m
+kubectl -n groat exec -i restore -- sh -ec 'rm -f /data/expenses.db-wal /data/expenses.db-shm; cat > /data/expenses.db' < expenses.db
+kubectl -n groat delete pod restore
+flux resume kustomization groat
+kubectl -n groat rollout status deployment/groat --timeout=5m
+```
+
+Keep downloading a backup before upgrades. A retained PVC is not a backup.

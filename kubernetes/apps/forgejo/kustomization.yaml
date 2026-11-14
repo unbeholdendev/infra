@@ -5,6 +5,5 @@ resources:
   - namespace.yaml
   - storage.yaml
   - release.yaml
-  - backup.yaml
 components:
   - ../../components/k8up-backup

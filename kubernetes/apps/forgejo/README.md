@@ -269,16 +269,11 @@ The restic password and rest-server credentials are in the shared
 
 To restore, fetch the dump on the laptop and rebuild the data-directory layout
 that [Back up and restore](#back-up-and-restore) expects. Allow about three
-times the dump size in free space. From this checkout:
+times the dump size in free space. Set up restic as in
+[Read a repository](../../infrastructure/k8up/README.md#read-a-repository)
+with `repo=forgejo`, then:
 
 ```sh
-umask 077
-f=kubernetes/components/k8up-backup/backup.sops.yaml
-export RESTIC_PASSWORD="$(sops -d --extract '["stringData"]["RESTIC_PASSWORD"]' $f)"
-rest_pw="$(sops -d --extract '["stringData"]["REST_PASSWORD"]' $f)"
-export RESTIC_REPOSITORY="rest:http://k8up:${rest_pw}@192.168.5.2:30800/forgejo"
-alias restic='nix shell nixpkgs#restic --command restic'
-restic snapshots
 d=$(mktemp -d); cd "$d"; mkdir -p dump out/gitea out/git
 restic dump latest /forgejo-forgejo.tar > forgejo-dump.tar
 tar -xf forgejo-dump.tar -C dump
@@ -290,8 +285,7 @@ find out/gitea -maxdepth 1 -name 'gitea.db*' -delete
 tar -C out --owner=1000 --group=1000 --numeric-owner -czpf forgejo-data.tar.gz .
 ```
 
-`restic ls latest` names the dump if `/forgejo-forgejo.tar` is not found. A
-REST password containing `@`, `:` or `/` must be percent-encoded in the URL.
+`restic ls latest` names the dump if `/forgejo-forgejo.tar` is not found.
 
 To test a restore without the cluster, stop before the final `tar` and check
 that the database is intact, that the repository count matches the live

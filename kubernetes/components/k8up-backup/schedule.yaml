@@ -3,12 +3,14 @@ kind: Schedule
 metadata:
   name: backup
 spec:
+  podConfigRef:
+    name: backup
   backend:
     repoPasswordSecretRef:
       name: backup
       key: RESTIC_PASSWORD
     rest:
-      url: http://192.168.5.2:30800/forgejo
+      url: http://192.168.5.2:30800/NAMESPACE
       userSecretRef:
         name: backup
         key: REST_USER

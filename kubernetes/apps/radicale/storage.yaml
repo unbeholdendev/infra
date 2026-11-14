@@ -4,6 +4,7 @@ metadata:
   name: storage
   annotations:
     kustomize.toolkit.fluxcd.io/prune: disabled
+    k8up.io/backup: "false"
 spec:
   accessModes:
     - ReadWriteOnce
