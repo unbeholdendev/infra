@@ -9,6 +9,7 @@ resources:
   - radicale.yaml
   - renovate.yaml
   - umami.yaml
+  - vaultwarden.yaml
   - metallb.yaml
   - traefik.yaml
   - cert-manager.yaml

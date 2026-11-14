@@ -106,6 +106,12 @@ deployment and manual backups.
 `umami.unbeholden.dev` on `.200`, proxied publicly by Giran. Its README covers
 backups and the cutover from aden.
 
+## Vaultwarden
+
+[`apps/vaultwarden`](apps/vaultwarden/) runs Vaultwarden at
+`vw.home.unbeholden.dev` on `.200`, with signups off. Its README covers
+backups, restores and the cutover from aden.
+
 ## Renovate
 
 [`apps/renovate`](apps/renovate/) runs daily and opens dependency update PRs on
