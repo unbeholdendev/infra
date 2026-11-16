@@ -19,8 +19,6 @@
       "aden:7233", // lnurl
       "192.168.4.200:443",
       "192.168.4.200:222",
-      "aden:4123", // lofik
-      "aden:5637", // book
     ] },
     { "action": "accept", "src": ["amberdust@"], "dst": [
       "192.168.4.200:443",    // cal and the other cluster apps
