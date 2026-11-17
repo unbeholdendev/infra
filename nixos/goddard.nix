@@ -43,6 +43,7 @@ in
     allowedHosts = [ "wallet.home.unbeholden.dev" ];
     electrumServer = "fulcrum";
   };
+  systemd.services.unbeholden-wallet.serviceConfig.IPAddressAllow = [ "192.168.4.133/32" ];
 
   # bitcoinix creates a new wallet when none exists; this node only runs the migrated one.
   systemd.services.lnd.unitConfig.ConditionPathExists = "/data/lnd/chain/bitcoin/mainnet/wallet.db";
