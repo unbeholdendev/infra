@@ -37,6 +37,13 @@ in
     '';
   };
 
+  services.unbeholden-wallet = {
+    enable = true;
+    address = "0.0.0.0";
+    allowedHosts = [ "wallet.home.unbeholden.dev" ];
+    electrumServer = "fulcrum";
+  };
+
   # bitcoinix creates a new wallet when none exists; this node only runs the migrated one.
   systemd.services.lnd.unitConfig.ConditionPathExists = "/data/lnd/chain/bitcoin/mainnet/wallet.db";
 
@@ -114,7 +121,8 @@ in
     nftables.enable = true;
     firewall.extraInputRules = ''
       ip saddr { 192.168.4.12, 192.168.1.0/24, 100.64.0.3 } tcp dport 10009 accept
-      ip saddr { 192.168.4.12, 192.168.1.0/24, 100.64.0.5 } tcp dport 50002 accept
+      ip saddr { 192.168.1.0/24, 100.64.0.5 } tcp dport 50002 accept
+      ip saddr 192.168.4.133 tcp dport 60846 accept
     '';
   };
 

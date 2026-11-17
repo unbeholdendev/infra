@@ -1,6 +1,6 @@
 # NixOS hosts
 
-`goddard` runs Bitcoin Core, LND and Fulcrum with [bitcoinix](https://github.com/bitcoinix/bitcoinix),
+`goddard` runs Bitcoin Core, LND, Fulcrum and Unbeholden Wallet with [bitcoinix](https://github.com/bitcoinix/bitcoinix),
 pinned in `flake.nix` to a release tag. The root `flake.lock` pins the exact commit.
 
 ## Update bitcoinix
@@ -52,7 +52,7 @@ balances. Follow the order below.
 
 Clients keep the same address and ports. The firewall accepts LND gRPC (10009)
 from aden, the LAN and the phone's tailnet address, and Fulcrum SSL (50002) from
-aden, the LAN and the laptop's tailnet address. bitcoind RPC stays local. LND's
+the LAN and the laptop's tailnet address. bitcoind RPC stays local. LND's
 macaroons carry over with its data, but its TLS certificate is new, so its
 clients need the new one.
 

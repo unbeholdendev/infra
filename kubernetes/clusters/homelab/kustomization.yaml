@@ -10,6 +10,7 @@ resources:
   - renovate.yaml
   - umami.yaml
   - vaultwarden.yaml
+  - wallet.yaml
   - metallb.yaml
   - traefik.yaml
   - cert-manager.yaml
