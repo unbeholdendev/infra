@@ -2,7 +2,6 @@ all:
   children:
     lxc:
       hosts:
-        goddard: { ansible_host: 192.168.4.11 }
         aden: { ansible_host: 192.168.4.12 }
         gludin: { ansible_host: 192.168.4.15 }
         heine: { ansible_host: 192.168.4.16 }
