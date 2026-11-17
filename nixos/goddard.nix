@@ -8,7 +8,7 @@ in
 
   nix-bitcoin = {
     generateSecrets = true;
-    configVersion = "0.1.5";
+    configVersion = "0.1.6";
     secrets = {
       fulcrum-ssl-key.user = "fulcrum";
       fulcrum-ssl-cert.user = "fulcrum";
