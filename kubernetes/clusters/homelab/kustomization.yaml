@@ -8,6 +8,7 @@ resources:
   - ntfy.yaml
   - radicale.yaml
   - renovate.yaml
+  - reviewer.yaml
   - umami.yaml
   - vaultwarden.yaml
   - wallet.yaml
