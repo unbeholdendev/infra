@@ -4,7 +4,6 @@ all:
       hosts:
         aden: { ansible_host: 192.168.4.12 }
         gludin: { ansible_host: 192.168.4.15 }
-        heine: { ansible_host: 192.168.4.16 }
       vars:
         ansible_user: root
     physical:
@@ -26,7 +25,6 @@ all:
     docker_hosts:
       hosts:
         aden:
-        heine:
     tailscale_nodes:
       hosts:
         giran:

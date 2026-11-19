@@ -23,7 +23,7 @@ putting the value in shell history or this repository. Keep the token in a
 private file or password manager. A privilege-separated token needs permissions
 on both the user and token.
 
-Scope VM permissions to `/vms/100`, `/vms/101` and `/vms/111`. Scope storage permissions to
+Scope VM permissions to `/vms/100`, `/vms/101`, `/vms/111` and `/vms/112`. Scope storage permissions to
 `/storage/local-lvm` and `/storage/local`, and network access to
 `/sdn/zones/localnetwork/vmbr0`. The VM role needs `VM.Allocate`, `VM.Audit`,
 `VM.PowerMgmt` and `VM.Config.CPU`, `VM.Config.Memory`, `VM.Config.Disk`,
@@ -134,6 +134,21 @@ To reinstall from scratch:
 5. Verify the QEMU guest agent, root SSH from the laptops, the `agent`
    session (`machinectl shell agent@`), rootless Docker and T3 pairing on
    TCP 3773.
+
+## NixOS heine VM
+
+`heine.tf` manages heine, the NixOS VM that runs the Forgejo Actions runner.
+The guest's configuration lives in [`nixos`](../../nixos/README.md#heine).
+
+| Proxmox name | ID | vCPU | RAM | System disk | MAC |
+| --- | --- | --- | --- | --- | --- |
+| heine-nixos | 112 | 4 | 8 GiB | 32 GiB | 02:00:00:04:01:16 |
+
+It shares oren's hardware and network settings, at `192.168.4.16`. To install,
+confirm ID 112 is free on dion, upload the NixOS 26.05 minimal ISO as for
+oren, set `heine.tf`'s `cdrom.file_id` to
+`"local:iso/nixos-minimal-26.05-x86_64-linux.iso"` and apply. The plan should
+add one VM. Set `file_id` back to `"none"` after the install.
 
 ## Later changes
 

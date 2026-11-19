@@ -63,6 +63,9 @@ spec:
               - targets: ["192.168.4.101:9100"]
                 labels:
                   instance: oren
+              - targets: ["192.168.4.16:9100"]
+                labels:
+                  instance: heine
     grafana:
       admin:
         existingSecret: grafana-admin

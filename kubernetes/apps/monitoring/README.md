@@ -13,12 +13,12 @@ worker.
 - Kubernetes: API server, kubelets, CoreDNS, kube-state-metrics and both Talos
   nodes through node-exporter. Talos binds the controller manager, scheduler,
   etcd and kube-proxy metrics to localhost, so those scrapes are off.
-- goddard (`192.168.4.11:9100`) and oren (`192.168.4.101:9100`) through
-  node_exporter, as job `node-exporter`, so they appear in the
-  "Node Exporter / Nodes" dashboard under their names. goddard's exporter is in
-  `nixos/goddard.nix`; oren's is in dotfiles. Both accept 9100 only from the
-  worker, `192.168.4.133`. If Prometheus moves to another node, add that node
-  to both rules.
+- goddard (`192.168.4.11:9100`), heine (`192.168.4.16:9100`) and oren
+  (`192.168.4.101:9100`) through node_exporter, as job `node-exporter`, so they
+  appear in the "Node Exporter / Nodes" dashboard under their names. goddard's
+  and heine's exporters are in `nixos/`; oren's is in dotfiles. All accept 9100
+  only from the worker, `192.168.4.133`. If Prometheus moves to another node,
+  add that node to each rule.
 
 node-exporter needs host network, PID namespace and paths, so it runs in its
 own privileged `node-exporter` namespace; `monitoring` stays baseline.

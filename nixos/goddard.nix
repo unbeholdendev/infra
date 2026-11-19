@@ -1,10 +1,7 @@
-{ config, lib, modulesPath, pkgs, ... }:
+{ config, pkgs, ... }:
 
-let
-  keyDir = ../keys/admin;
-in
 {
-  imports = [ (modulesPath + "/profiles/qemu-guest.nix") ];
+  imports = [ ./vm.nix ];
 
   nix-bitcoin = {
     generateSecrets = true;
@@ -83,36 +80,6 @@ in
     fsType = "ext4";
   };
 
-  disko.devices.disk.boot = {
-    device = "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0";
-    content = {
-      type = "gpt";
-      partitions = {
-        ESP = {
-          size = "512M";
-          type = "EF00";
-          content = {
-            type = "filesystem";
-            format = "vfat";
-            mountpoint = "/boot";
-            mountOptions = [ "umask=0077" ];
-          };
-        };
-        root = {
-          size = "100%";
-          content = {
-            type = "filesystem";
-            format = "ext4";
-            mountpoint = "/";
-          };
-        };
-      };
-    };
-  };
-
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-
   networking = {
     hostName = "goddard";
     useDHCP = false;
@@ -127,21 +94,10 @@ in
     '';
   };
 
-  services.qemuGuest.enable = true;
   services.prometheus.exporters.node = {
     enable = true;
     enabledCollectors = [ "systemd" ];
   };
-  services.openssh = {
-    enable = true;
-    settings = {
-      PasswordAuthentication = false;
-      KbdInteractiveAuthentication = false;
-    };
-  };
-  users.users.root.openssh.authorizedKeys.keys =
-    map (f: builtins.readFile (keyDir + "/${f}"))
-      (builtins.attrNames (lib.filterAttrs (n: _: lib.hasSuffix ".pub" n) (builtins.readDir keyDir)));
 
   system.stateVersion = "26.05";
 }

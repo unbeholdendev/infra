@@ -15,7 +15,7 @@ ansible-galaxy install -r requirements.yml -p galaxy_roles
 
 ## Dion VMs
 
-[`opentofu/dion`](opentofu/dion/) defines two Talos VMs and the NixOS oren VM.
+[`opentofu/dion`](opentofu/dion/) defines two Talos VMs and the NixOS oren and heine VMs.
 Run OpenTofu from the laptop; Talos setup stays manual. See its README for state,
 credentials and the plan/apply workflow.
 

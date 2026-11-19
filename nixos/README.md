@@ -3,6 +3,10 @@
 `goddard` runs Bitcoin Core, LND, Fulcrum and Unbeholden Wallet with [bitcoinix](https://github.com/bitcoinix/bitcoinix),
 pinned in `flake.nix` to a release tag. The root `flake.lock` pins the exact commit.
 
+`heine` runs the Forgejo Actions runner. See [heine](#heine).
+
+`vm.nix` holds what both share: disk layout, boot, SSH and the guest agent.
+
 ## Update bitcoinix
 
 Check the new tag's signature against the maintainers' keys:
@@ -123,3 +127,59 @@ don't go back.
 
 LND starts only if `/data/lnd/chain/bitcoin/mainnet/wallet.db` exists. Otherwise
 bitcoinix would create a new wallet next to the migrated data.
+
+## heine
+
+heine runs two runners, both on `catthehacker/ubuntu:act-latest`:
+
+- `heine` serves `docker`, for checks and pull requests. Jobs get no Docker
+  socket.
+- `heine-build` serves `docker-build`. Jobs get the host's Docker socket
+  (`docker_host: automount`), which buildx's `docker` driver needs, so they
+  are root on heine. Use it only for workflows that run trusted code, such as
+  a manual build from `main`, never on `pull_request`.
+
+Both read the registration token from `/etc/forgejo-runner/token` as
+`TOKEN=<token>`, mode 600, not in Git. Each registers on first start, and again
+when the token or labels change.
+
+Deploy changes from the repository root:
+
+```sh
+nixos-rebuild switch --flake .#heine --target-host root@192.168.4.16
+```
+
+### Replace the heine container
+
+The VM takes the container's name and address, so the two never run at once.
+
+1. In Forgejo, create a runner registration token in the same scope as the
+   old runner.
+2. Create VM 112 with the ISO attached (see
+   [`opentofu/dion`](../opentofu/dion/README.md#nixos-heine-vm)).
+3. Stop the container and keep it from starting:
+   `pct set <ctid> --onboot 0 && pct stop <ctid>`.
+4. VLAN 4 has no DHCP. In the VM console:
+   ```sh
+   sudo passwd root
+   sudo ip a add 192.168.4.16/24 dev ens18
+   sudo ip r add default via 192.168.4.1
+   ```
+5. From the laptop, in the repository root:
+   ```sh
+   ssh-keygen -R 192.168.4.16
+   nix run github:nix-community/nixos-anywhere -- --flake .#heine root@192.168.4.16
+   ```
+6. On heine, after `ssh-keygen -R 192.168.4.16`:
+   ```sh
+   install -d -m 700 /etc/forgejo-runner
+   install -m 600 /dev/null /etc/forgejo-runner/token
+   nano /etc/forgejo-runner/token
+   systemctl restart gitea-runner-heine gitea-runner-build
+   ```
+7. Check that `heine` and `heine-build` show as online in Forgejo, then run
+   the netcup snapshot and the reviewer's `build` workflow by hand. Check
+   that Prometheus shows the `heine` target as up. Delete the old runner in
+   Forgejo, then the container with `pct destroy <ctid>`.
+
+Until step 7, you can roll back: stop VM 112 and start the container.

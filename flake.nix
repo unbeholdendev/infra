@@ -19,6 +19,14 @@
       ];
     };
 
+    nixosConfigurations.heine = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      modules = [
+        disko.nixosModules.disko
+        ./nixos/heine.nix
+      ];
+    };
+
     devShells.x86_64-linux.default =
       let pkgs = nixpkgs-unstable.legacyPackages.x86_64-linux;
       in pkgs.mkShell {
