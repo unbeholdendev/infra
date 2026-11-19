@@ -47,15 +47,15 @@ The router must allow the cluster nodes to reach `192.168.5.2` on TCP 30800.
 ## Verify after merge
 
 ```sh
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n k8up get helmrelease,pods
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n forgejo get schedule,backup,snapshots
+kubectl -n k8up get helmrelease,pods
+kubectl -n forgejo get schedule,backup,snapshots
 ```
 
 To run a backup now rather than wait for the schedule, replacing `forgejo`
 in both places with the app:
 
 ```sh
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n forgejo create -f - <<'EOF'
+kubectl -n forgejo create -f - <<'EOF'
 apiVersion: k8up.io/v1
 kind: Backup
 metadata:

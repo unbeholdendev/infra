@@ -80,8 +80,7 @@ which the chart does not expose as a value; keep that patch.
 ## Prepare a fresh restore
 
 A restore starts from an empty `storage` claim, for example after losing the
-worker. Run from this repository on the laptop, with the working homelab `KUBECONFIG`
-and the temporary zero-replica patch in place:
+worker. Run from this repository on the laptop, with the temporary zero-replica patch in place:
 
 ```sh
 flux get kustomizations

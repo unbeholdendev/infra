@@ -34,9 +34,9 @@ node's address changes.
 Flux detects the merge automatically. On the laptop:
 
 ```sh
-nix shell nixpkgs#fluxcd --command flux get kustomizations --kubeconfig="$HOME/talos/dion-v2/kubeconfig"
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n traefik get helmrelease,pods,service
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n traefik get certificate,tlsstore
+nix shell nixpkgs#fluxcd --command flux get kustomizations
+kubectl -n traefik get helmrelease,pods,service
+kubectl -n traefik get certificate,tlsstore
 curl --noproxy '*' --fail --show-error --connect-timeout 5 --max-time 15 --resolve dashboard.home.unbeholden.dev:443:192.168.4.200 -I https://dashboard.home.unbeholden.dev/
 curl --noproxy '*' --show-error --connect-timeout 5 --max-time 15 --resolve dashboard.home.unbeholden.dev:80:192.168.4.200 -I http://dashboard.home.unbeholden.dev/
 ```

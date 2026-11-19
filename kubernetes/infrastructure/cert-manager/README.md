@@ -59,10 +59,10 @@ AdGuard change is needed to prove ownership using a public TXT record.
 On the laptop:
 
 ```sh
-nix shell nixpkgs#fluxcd --command flux get kustomizations --kubeconfig="$HOME/talos/dion-v2/kubeconfig"
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n cert-manager get helmreleases,pods,certificates,issuers
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" get apiservice v1alpha1.cert-manager-webhook-spaceship.hjwylde.github.io
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" get clusterissuers letsencrypt-staging letsencrypt-production
+nix shell nixpkgs#fluxcd --command flux get kustomizations
+kubectl -n cert-manager get helmreleases,pods,certificates,issuers
+kubectl get apiservice v1alpha1.cert-manager-webhook-spaceship.hjwylde.github.io
+kubectl get clusterissuers letsencrypt-staging letsencrypt-production
 ```
 
 Expect both HelmReleases Ready, four running controller/webhook pods, two Ready
@@ -72,8 +72,8 @@ ClusterIssuers Ready. Production issuance can take several minutes for DNS
 propagation; check the Certificate rather than retrying production requests.
 
 ```sh
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n traefik wait --for=condition=Ready certificate/home-wildcard --timeout=20m
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n traefik get certificates,orders,challenges
+kubectl -n traefik wait --for=condition=Ready certificate/home-wildcard --timeout=20m
+kubectl -n traefik get certificates,orders,challenges
 ```
 
 Expect `home-wildcard` Ready and its ACME Order valid. The Challenge may already
@@ -93,8 +93,8 @@ Flux prunes the per-app Certificates but cert-manager retains their Secrets. Onc
 every route serves the wildcard, remove them:
 
 ```sh
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n homepage delete secret homepage-tls --ignore-not-found
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n forgejo delete secret forgejo-tls --ignore-not-found
+kubectl -n homepage delete secret homepage-tls --ignore-not-found
+kubectl -n forgejo delete secret forgejo-tls --ignore-not-found
 ```
 
 The temporary staging Certificate manifest is removed, stopping its renewals.
@@ -102,14 +102,14 @@ cert-manager normally retains the generated TLS Secret. Once Flux has removed
 the test Certificate, this command removes only its leftover test Secret:
 
 ```sh
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n cert-manager delete secret dashboard-staging-tls --ignore-not-found
+kubectl -n cert-manager delete secret dashboard-staging-tls --ignore-not-found
 ```
 
 Keep the staging issuer and its account key for future tests. Do not delete the
 Spaceship credential or the production certificate/account Secrets.
 
 To diagnose failures, describe the failing resource and inspect the relevant
-pod logs with the same kubeconfig. Do not print Secrets while debugging.
+pod logs. Do not print Secrets while debugging.
 cert-manager retains CRDs on Helm uninstall by default; do not delete the CRDs
 or namespace as routine troubleshooting, since that can destroy certificate
 resources or keys.

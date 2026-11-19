@@ -36,9 +36,9 @@ Flux discovers the merge automatically. Manual reconciliation only skips the
 polling wait. On the laptop:
 
 ```sh
-nix shell nixpkgs#fluxcd --command flux get kustomizations --kubeconfig="$HOME/talos/dion-v2/kubeconfig"
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n metallb-system get helmrelease,pods
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n metallb-system get ipaddresspool,l2advertisement
+nix shell nixpkgs#fluxcd --command flux get kustomizations
+kubectl -n metallb-system get helmrelease,pods
+kubectl -n metallb-system get ipaddresspool,l2advertisement
 ```
 
 Expect both Flux Kustomizations and the HelmRelease to become Ready, the

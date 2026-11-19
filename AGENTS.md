@@ -10,3 +10,9 @@ force-pushes cannot reliably remove anything from it. Stage files by name.
 Commits, including messages and trailers, must not hold employer or client
 names, other people's names, private emails, real names, or public IPs that DNS
 does not already publish. Every Secret manifest must be SOPS-encrypted.
+
+## Secrets
+
+Never generate passwords, keys or other secret values, even encrypted. Reference
+the Secret by name and tell the user what to create; they generate and encrypt
+it.

@@ -6,7 +6,6 @@ workloads (`kubectl`), and Flux makes the cluster match Git (`flux`).
 ## Connect
 
 ```sh
-export KUBECONFIG="$HOME/talos/dion/kubeconfig"
 export TALOSCONFIG="$HOME/talos/dion/talosconfig"
 kubectl config current-context
 talosctl config info

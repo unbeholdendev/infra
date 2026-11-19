@@ -12,8 +12,8 @@ this cluster. On the laptop, create the decryption Secret before merging the
 Flux configuration:
 
 ```sh
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n flux-system create secret generic sops-age --from-file=age.agekey="$HOME/.config/sops/age/keys.txt"
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n flux-system get secret sops-age
+kubectl -n flux-system create secret generic sops-age --from-file=age.agekey="$HOME/.config/sops/age/keys.txt"
+kubectl -n flux-system get secret sops-age
 ```
 
 The first command reads the private file directly; it does not print its
@@ -50,7 +50,7 @@ created outside that root needs its own configuration.
 After merging, Flux discovers the change automatically:
 
 ```sh
-nix shell nixpkgs#fluxcd --command flux get kustomizations --kubeconfig="$HOME/talos/dion-v2/kubeconfig"
+nix shell nixpkgs#fluxcd --command flux get kustomizations
 ```
 
 All should become Ready. Flux decrypts the Spaceship credentials before applying

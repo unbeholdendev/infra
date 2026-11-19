@@ -60,9 +60,9 @@ Flux deploys merges automatically. For status and optional local access, run
 these on the laptop:
 
 ```sh
-nix shell nixpkgs#fluxcd --command flux get kustomizations --kubeconfig="$HOME/talos/dion-v2/kubeconfig"
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n homepage get pods -o wide
-kubectl --kubeconfig="$HOME/talos/dion-v2/kubeconfig" -n homepage port-forward service/homepage 3000:3000
+nix shell nixpkgs#fluxcd --command flux get kustomizations
+kubectl -n homepage get pods -o wide
+kubectl -n homepage port-forward service/homepage 3000:3000
 ```
 
 Leave the last command running and open <http://localhost:3000>. Port forwarding
@@ -77,7 +77,7 @@ The starter page contains links only, with no widget credentials or application
 authentication.
 
 For failures, inspect `kubectl -n homepage describe pod` and `kubectl -n homepage
-logs deployment/homepage`, using the same kubeconfig. A Flux Kustomization may
+logs deployment/homepage`. A Flux Kustomization may
 remain unhealthy until the Deployment is ready.
 
 ## Forgejo
