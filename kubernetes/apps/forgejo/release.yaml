@@ -83,6 +83,8 @@ spec:
           START_SSH_SERVER: false
         security:
           INSTALL_LOCK: true
+        webhook:
+          ALLOWED_HOST_LIST: reviewer.reviewer.svc.cluster.local
       startupProbe:
         enabled: true
     resources:
