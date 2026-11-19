@@ -20,6 +20,10 @@
         icon: proxmox.png
         href: https://192.168.6.3:8006
         description: Virtual machines and containers
+    - Grafana:
+        icon: grafana.png
+        href: https://grafana.home.unbeholden.dev
+        description: Metrics and dashboards
     - TrueNAS:
         icon: truenas.png
         href: http://192.168.5.2

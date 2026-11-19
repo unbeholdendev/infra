@@ -43,6 +43,11 @@ and production issuers. Traefik requests one `*.home.unbeholden.dev` certificate
 using the encrypted Spaceship credentials and serves it for every HTTPS route.
 See its README for verification and cleanup.
 
+## Monitoring
+
+[`apps/monitoring`](apps/monitoring/) runs Prometheus and Grafana at
+`https://grafana.home.unbeholden.dev`. See its README for targets and setup.
+
 ## Homepage
 
 Homepage v2.7.0 runs as one non-root pod with no Kubernetes API token, discovery

@@ -11,6 +11,7 @@ resources:
   - umami.yaml
   - vaultwarden.yaml
   - wallet.yaml
+  - monitoring.yaml
   - metallb.yaml
   - traefik.yaml
   - cert-manager.yaml

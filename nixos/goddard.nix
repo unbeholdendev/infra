@@ -123,11 +123,15 @@ in
     firewall.extraInputRules = ''
       ip saddr { 192.168.4.12, 192.168.1.0/24, 100.64.0.3 } tcp dport 10009 accept
       ip saddr { 192.168.1.0/24, 100.64.0.5 } tcp dport 50002 accept
-      ip saddr 192.168.4.133 tcp dport 60846 accept
+      ip saddr 192.168.4.133 tcp dport { 9100, 60846 } accept
     '';
   };
 
   services.qemuGuest.enable = true;
+  services.prometheus.exporters.node = {
+    enable = true;
+    enabledCollectors = [ "systemd" ];
+  };
   services.openssh = {
     enable = true;
     settings = {
