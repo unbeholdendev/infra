@@ -41,6 +41,11 @@ spec:
       enabled: false
     prometheus-node-exporter:
       namespaceOverride: node-exporter
+      prometheus:
+        monitor:
+          relabelings:
+            - sourceLabels: [__meta_kubernetes_pod_node_name]
+              targetLabel: instance
     prometheus:
       prometheusSpec:
         retention: 15d
