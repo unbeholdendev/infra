@@ -4,3 +4,11 @@ resources:
   - namespace.yaml
   - grafana-admin.sops.yaml
   - release.yaml
+configMapGenerator:
+  - name: dashboard-hosts
+    namespace: monitoring
+    files:
+      - hosts.json=dashboards/hosts.json
+    options:
+      labels:
+        grafana_dashboard: "1"

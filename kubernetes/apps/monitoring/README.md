@@ -20,6 +20,11 @@ worker.
   only from the worker, `192.168.4.133`. If Prometheus moves to another node,
   add that node to each rule.
 
+Every node-exporter target carries a `host` label naming the Proxmox host it
+runs on: `dion` for the Talos nodes, oren and heine, `rune` for goddard. A new
+target needs one too. The "Physical hosts" dashboard
+(`dashboards/hosts.json`) sums CPU and memory by it.
+
 node-exporter needs host network, PID namespace and paths, so it runs in its
 own privileged `node-exporter` namespace; `monitoring` stays baseline.
 

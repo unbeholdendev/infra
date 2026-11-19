@@ -46,6 +46,10 @@ spec:
           relabelings:
             - sourceLabels: [__meta_kubernetes_pod_node_name]
               targetLabel: instance
+            - sourceLabels: [__meta_kubernetes_pod_node_name]
+              regex: talos-.*
+              targetLabel: host
+              replacement: dion
     prometheus:
       prometheusSpec:
         retention: 15d
@@ -65,12 +69,15 @@ spec:
               - targets: ["192.168.4.11:9100"]
                 labels:
                   instance: goddard
+                  host: rune
               - targets: ["192.168.4.101:9100"]
                 labels:
                   instance: oren
+                  host: dion
               - targets: ["192.168.4.16:9100"]
                 labels:
                   instance: heine
+                  host: dion
     grafana:
       admin:
         existingSecret: grafana-admin
