@@ -1,0 +1,5 @@
+[mcp_servers.grafana]
+command = "sh"
+args = ["-c", "GRAFANA_SERVICE_ACCOUNT_TOKEN=$(cat ~/.config/grafana-mcp/token) exec nix run .#mcp-grafana"]
+env = { GRAFANA_URL = "https://grafana.home.unbeholden.dev" }
+startup_timeout_sec = 60

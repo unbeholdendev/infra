@@ -27,6 +27,9 @@
       ];
     };
 
+    packages.x86_64-linux.mcp-grafana =
+      nixpkgs-unstable.legacyPackages.x86_64-linux.mcp-grafana;
+
     devShells.x86_64-linux.default =
       let pkgs = nixpkgs-unstable.legacyPackages.x86_64-linux;
       in pkgs.mkShell {

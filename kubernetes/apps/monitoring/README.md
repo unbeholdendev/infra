@@ -31,6 +31,10 @@ database; change the password in Grafana after that. Grafana's database sits on 
 no backup. Put dashboards worth keeping in Git as ConfigMaps labelled
 `grafana_dashboard: "1"`.
 
+Claude and Codex sessions in this repo get Grafana's MCP server (`.mcp.json`,
+`.codex/config.toml`). It reads a Viewer service account token from
+`~/.config/grafana-mcp/token`, mode 600, on the machine the agent runs on.
+
 ## Before merging
 
 1. Create `grafana-admin.sops.yaml` here: a Secret named `grafana-admin` in
