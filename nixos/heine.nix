@@ -1,5 +1,8 @@
 { pkgs, ... }:
 
+let
+  image = "docker://catthehacker/ubuntu:act-latest@sha256:a17ca1ab0676e450e5383024da90a53521edbbcf1e85b13a4d4a20bd5663eaa9";
+in
 {
   imports = [ ./vm.nix ];
 
@@ -16,14 +19,14 @@
         name = "heine";
         url = "https://git.home.unbeholden.dev";
         tokenFile = "/etc/forgejo-runner/token";
-        labels = [ "docker:docker://catthehacker/ubuntu:act-latest" ];
+        labels = [ "docker:${image}" ];
       };
       build = {
         enable = true;
         name = "heine-build";
         url = "https://git.home.unbeholden.dev";
         tokenFile = "/etc/forgejo-runner/token";
-        labels = [ "docker-build:docker://catthehacker/ubuntu:act-latest" ];
+        labels = [ "docker-build:${image}" ];
         settings.container.docker_host = "automount";
       };
     };

@@ -12,6 +12,7 @@ env:
 
 jobs:
   snapshot:
+    if: github.ref == 'refs/heads/main'
     runs-on: docker
     steps:
       - name: Snapshot vps-germany and prune old ones

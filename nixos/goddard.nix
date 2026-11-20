@@ -20,15 +20,14 @@
   services.lnd = {
     enable = true;
     dataDir = "/data/lnd";
-    rpcAddress = "0.0.0.0";
-    certificate.extraIPs = [ "192.168.4.11" ];
+    rpcAddress = "192.168.4.11";
   };
 
   services.fulcrum = {
     enable = true;
     dataDir = "/data/fulcrum";
     extraConfig = ''
-      ssl = 0.0.0.0:50002
+      ssl = 192.168.4.11:50002
       cert = ${config.nix-bitcoin.secretsDir}/fulcrum-ssl-cert
       key = ${config.nix-bitcoin.secretsDir}/fulcrum-ssl-key
     '';

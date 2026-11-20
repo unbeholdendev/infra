@@ -16,7 +16,16 @@
           {% endfor %}{% for f in extra_authorized_keys | default([]) %}{{ lookup('file', inventory_dir + '/' + f) }}
           {% endfor %}
 
-- name: Ensure distribution and admin keys present on OpenWrt (additive)
+    - name: Remove revoked keys
+      ansible.posix.authorized_key:
+        user: "{{ ansible_user }}"
+        key: "{{ lookup('file', item) }}"
+        state: absent
+      loop: "{{ revoked_key_files }}"
+      loop_control:
+        label: "{{ item | basename }}"
+
+- name: Converge dropbear authorized_keys on OpenWrt (additive, minus revoked)
   hosts: router
   gather_facts: false
   tasks:
@@ -25,5 +34,20 @@
         grep -qF "{{ lookup('file', item) | trim }}" /etc/dropbear/authorized_keys 2>/dev/null \
           || echo "{{ lookup('file', item) | trim }}" >> /etc/dropbear/authorized_keys
       loop: "{{ distribution_key_files + admin_key_files }}"
+      loop_control:
+        label: "{{ item | basename }}"
+
+    - name: Remove revoked keys from dropbear authorized_keys
+      ansible.builtin.raw: |
+        f=/etc/dropbear/authorized_keys
+        k="{{ (lookup('file', item) | split)[1] }}"
+        grep -qF "$k" "$f" 2>/dev/null || exit 0
+        grep -vF "$k" "$f" > "$f.new"
+        [ $? -le 1 ] && [ "$(wc -l < "$f.new")" -eq "$(grep -cvF "$k" "$f")" ] \
+          || { rm -f "$f.new"; echo "could not filter $f" >&2; exit 1; }
+        chmod 600 "$f.new" && mv "$f.new" "$f" && echo removed
+      register: revoked
+      changed_when: "'removed' in revoked.stdout"
+      loop: "{{ revoked_key_files }}"
       loop_control:
         label: "{{ item | basename }}"
