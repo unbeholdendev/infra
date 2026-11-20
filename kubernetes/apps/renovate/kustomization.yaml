@@ -5,3 +5,5 @@ resources:
   - namespace.yaml
   - cronjob.yaml
   - env.sops.yaml
+components:
+  - ../../components/internet-egress

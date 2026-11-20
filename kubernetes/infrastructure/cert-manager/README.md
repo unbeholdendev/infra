@@ -1,7 +1,10 @@
 # Certificate management
 
 Installs the official cert-manager chart **v1.21.3** and the community Spaceship
-webhook chart/app **0.1.3**. Flux orders reconciliation:
+webhook chart/app **0.1.3**. A single maintainer publishes the webhook and it
+holds the registrar credential, so Flux takes its chart from a pinned commit and
+its image by digest. Renovate does not update either: review the source diff,
+then change the commit and digest by hand. Flux orders reconciliation:
 
 ```text
 cert-manager → spaceship-webhook → cert-issuers → traefik → apps

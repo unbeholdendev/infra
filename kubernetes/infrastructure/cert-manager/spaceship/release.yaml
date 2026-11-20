@@ -1,11 +1,16 @@
 apiVersion: source.toolkit.fluxcd.io/v1
-kind: HelmRepository
+kind: GitRepository
 metadata:
   name: spaceship-webhook
   namespace: cert-manager
 spec:
   interval: 1h
-  url: https://hjwylde.github.io/cert-manager-webhook-spaceship
+  url: https://github.com/hjwylde/cert-manager-webhook-spaceship
+  ref:
+    commit: 8d417768d2d2a0ed72c6fb978943126c307103f2
+  ignore: |
+    /*
+    !/charts/
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
@@ -16,14 +21,14 @@ spec:
   interval: 1h
   chart:
     spec:
-      chart: cert-manager-webhook-spaceship
-      version: 0.1.3
+      chart: ./charts/cert-manager-webhook-spaceship
       sourceRef:
-        kind: HelmRepository
+        kind: GitRepository
         name: spaceship-webhook
-      interval: 1h
   values:
     fullnameOverride: spaceship-webhook
+    image:
+      tag: 0.1.3@sha256:73c2854342f7c909714617357661846b1c15c850b2b9ad55568788d60ff5adcb
     resources:
       requests:
         cpu: 25m

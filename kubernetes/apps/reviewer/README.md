@@ -7,9 +7,10 @@ no ingress.
 The image is pinned by digest to the `latest` tag that the repository's
 `build` workflow pushes. Renovate opens a PR when that digest changes.
 
-The PR under review is untrusted input, and the cluster enforces no network
-policies, so the pod can reach the LAN and other Services. Give its Forgejo
-account access only to the repositories it reviews.
+The PR under review is untrusted input. Give its Forgejo account access only to
+the repositories it reviews. The [`internet-egress`](../../components/internet-egress/)
+NetworkPolicy limits the pod to DNS, Traefik and the internet, once the cluster
+[enforces it](../../README.md#network-policies).
 
 The server exits at startup without a usable subscription login in the
 `credentials` claim, which holds `auth.json` and `device-id`. Both stay out of

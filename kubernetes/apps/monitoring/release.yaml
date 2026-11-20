@@ -78,9 +78,17 @@ spec:
                 labels:
                   instance: heine
                   host: dion
+    kube-state-metrics:
+      collectorsExclude:
+        - secrets
     grafana:
       admin:
         existingSecret: grafana-admin
+      rbac:
+        namespaced: true
+      sidecar:
+        dashboards:
+          searchNamespace: monitoring
       initChownData:
         enabled: false
       persistence:

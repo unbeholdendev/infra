@@ -38,6 +38,11 @@ Before merging the first deployment:
      RENOVATE_GITHUB_COM_TOKEN: <GitHub token>
    ```
 
+Renovate runs code from the repositories it updates. The
+[`internet-egress`](../../components/internet-egress/) NetworkPolicy limits it to
+DNS, Traefik and the internet, once the cluster
+[enforces it](../../README.md#network-policies). A lookup on a LAN host fails.
+
 ## Operating
 
 ```sh

@@ -33,8 +33,10 @@ own privileged `node-exporter` namespace; `monitoring` stays baseline.
 Grafana reads its admin login from the Secret `grafana-admin` in `monitoring`,
 with keys `admin-user` and `admin-password`, only when it first creates its
 database; change the password in Grafana after that. Grafana's database sits on a 1 GiB `local-path` claim with
-no backup. Put dashboards worth keeping in Git as ConfigMaps labelled
-`grafana_dashboard: "1"`.
+no backup. Put dashboards worth keeping in Git as ConfigMaps in `monitoring` labelled
+`grafana_dashboard: "1"`. Grafana can read ConfigMaps and Secrets only in
+`monitoring`, and kube-state-metrics does not collect Secrets, so neither can
+read Secrets in other namespaces.
 
 Claude and Codex sessions in this repo get Grafana's MCP server (`.mcp.json`,
 `.codex/config.toml`). It reads a Viewer service account token from

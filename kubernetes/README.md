@@ -14,6 +14,17 @@ private decryption Secret on the laptop before merging the Flux configuration.
 The public recipient is tracked; the private identity is backed up in
 Vaultwarden, without giving the cluster access to Vaultwarden.
 
+## Network policies
+
+The cluster runs Talos's Flannel without `kube-network-policies`, so it enforces
+no NetworkPolicy yet. Enable `kubeNetworkPoliciesEnabled` in the Talos Flannel
+config to enforce them. That also enforces Flux's own policies in `flux-system`.
+
+[`components/internet-egress`](components/internet-egress/) denies a namespace's
+egress except DNS, Traefik on `.200` and non-private addresses. Reviewer and
+Renovate use it. A NetworkPolicy cannot name hosts, so it allows the whole
+internet.
+
 ## MetalLB
 
 [`infrastructure/metallb`](infrastructure/metallb/) installs MetalLB and reserves
