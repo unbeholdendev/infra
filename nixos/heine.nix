@@ -35,8 +35,6 @@ in
   services.prometheus.exporters.node = {
     enable = true;
     enabledCollectors = [ "systemd" ];
-    openFirewall = true;
-    firewallFilter = "-p tcp -s 192.168.4.133 --dport 9100";
   };
 
   networking = {
@@ -45,6 +43,9 @@ in
     interfaces.ens18.ipv4.addresses = [{ address = "192.168.4.16"; prefixLength = 24; }];
     defaultGateway = "192.168.4.1";
     nameservers = [ "192.168.4.1" ];
+    firewall.extraCommands = ''
+      iptables -A nixos-fw -p tcp -s 192.168.4.133 --dport 9100 -j nixos-fw-accept
+    '';
   };
 
   system.stateVersion = "26.05";
