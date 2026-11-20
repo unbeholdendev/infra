@@ -52,7 +52,7 @@ type in this stage, so the address is not allocated or advertised yet. A ping or
 browser request to `.200` is not an installation test; end-to-end reachability
 will be checked when Traefik is added.
 
-Leave the AdGuard wildcard rewrite and Caddy unchanged. A later stage will add
+Leave the AdGuard wildcard rewrite unchanged. A later stage will add
 an exact `dashboard.home.unbeholden.dev` rewrite after the proxy is reachable.
 
 ## References

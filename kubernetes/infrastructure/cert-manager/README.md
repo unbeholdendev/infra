@@ -45,11 +45,10 @@ listing or watching is needed. Its remaining RBAC allows Kubernetes delegated
 authentication and cert-manager to call the solver API.
 
 The [SOPS](../../SECRETS.md)-encrypted Secret contains `api-key` and `api-secret`.
-It reuses Caddy's Spaceship credential with DNS Records Write permission; do not
-revoke or rotate it without updating both consumers until Caddy is retired. The
-solver selector is routing configuration, not an API credential security
-boundary. The credential can change whatever DNS records its provider
-permissions allow.
+cert-manager is the only user of this Spaceship credential, which has DNS
+Records Write permission. The solver selector is routing configuration, not an
+API credential security boundary. The credential can change whatever DNS
+records its provider permissions allow, so scope it to DNS records only.
 
 cert-manager uses public recursive resolvers `1.1.1.1:53` and `9.9.9.9:53` for
 DNS-01 self-checks, rather than AdGuard's private wildcard rewrite. It needs
@@ -82,14 +81,13 @@ kubectl -n traefik get certificates,orders,challenges
 Expect `home-wildcard` Ready and its ACME Order valid. The Challenge may already
 be gone after completion; if still present, allow cleanup to finish. Confirm
 cert-manager's public TXT record at `_acme-challenge.home.unbeholden.dev` is
-removed. Caddy uses the same name for its own wildcard until it is retired, so
-leave other values alone. If issuance fails, describe `certificate/home-wildcard`
-and the relevant Order/Challenge without printing Secrets. A Ready issuer alone
-only proves ACME account registration, not certificate issuance.
+removed. If issuance fails, describe `certificate/home-wildcard` and the
+relevant Order/Challenge without printing Secrets. A Ready issuer alone only
+proves ACME account registration, not certificate issuance.
 
 Follow Traefik's [verification steps](../traefik/) to check the served
 certificate. Exact AdGuard rewrites point cluster hostnames to `192.168.4.200`;
-keep Caddy and the wildcard rewrite unchanged. No public inbound access
+keep the wildcard rewrite unchanged. No public inbound access
 is needed for issuance.
 
 Flux prunes the per-app Certificates but cert-manager retains their Secrets. Once

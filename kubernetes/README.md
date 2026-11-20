@@ -44,7 +44,7 @@ ownership. See its README for why and for node preparation.
 [`infrastructure/traefik`](infrastructure/traefik/) serves
 `https://dashboard.home.unbeholden.dev` on `192.168.4.200:443` and redirects
 HTTP to HTTPS. See its README for TLS tests from LAN and Tailscale. AdGuard's
-exact dashboard rewrite points to `.200`; Caddy and the wildcard stay unchanged.
+exact dashboard rewrite points to `.200`; the wildcard stays unchanged.
 
 ## Certificates
 
@@ -88,7 +88,7 @@ If the Deployment is still starting, wait for its pod to become Ready first.
 `HOMEPAGE_ALLOWED_HOSTS` includes the pod IP for probes and the planned
 `dashboard.home.unbeholden.dev` hostname. Homepage also allows `localhost:3000`
 and `127.0.0.1:3000` by default. This check is not authentication. HTTPS encrypts
-traffic but does not authenticate users; Caddy remains unchanged.
+traffic but does not authenticate users.
 The starter page contains links only, with no widget credentials or application
 authentication.
 
