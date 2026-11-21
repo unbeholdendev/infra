@@ -30,7 +30,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: groat
-          image: ghcr.io/unbeholdendev/groat:v0.1.2
+          image: ghcr.io/unbeholdendev/groat:v0.1.3
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
