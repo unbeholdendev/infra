@@ -20,6 +20,10 @@ in
         url = "https://git.home.unbeholden.dev";
         tokenFile = "/etc/forgejo-runner/token";
         labels = [ "docker:${image}" ];
+        settings = {
+          runner.capacity = 3;
+          cache.proxy_port = 8088;
+        };
       };
       build = {
         enable = true;
@@ -27,7 +31,10 @@ in
         url = "https://git.home.unbeholden.dev";
         tokenFile = "/etc/forgejo-runner/token";
         labels = [ "docker-build:${image}" ];
-        settings.container.docker_host = "automount";
+        settings = {
+          container.docker_host = "automount";
+          cache.proxy_port = 8089;
+        };
       };
     };
   };
@@ -43,9 +50,12 @@ in
     interfaces.ens18.ipv4.addresses = [{ address = "192.168.4.16"; prefixLength = 24; }];
     defaultGateway = "192.168.4.1";
     nameservers = [ "192.168.4.1" ];
-    firewall.extraCommands = ''
-      iptables -A nixos-fw -p tcp -s 192.168.4.133 --dport 9100 -j nixos-fw-accept
-    '';
+    firewall = {
+      interfaces."br-+".allowedTCPPorts = [ 8088 8089 ];
+      extraCommands = ''
+        iptables -A nixos-fw -p tcp -s 192.168.4.133 --dport 9100 -j nixos-fw-accept
+      '';
+    };
   };
 
   system.stateVersion = "26.05";

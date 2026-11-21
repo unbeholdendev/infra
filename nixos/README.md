@@ -132,12 +132,19 @@ bitcoinix would create a new wallet next to the migrated data.
 
 heine runs two runners, both on `catthehacker/ubuntu:act-latest`:
 
-- `heine` serves `docker`, for checks and pull requests. Jobs get no Docker
-  socket.
-- `heine-build` serves `docker-build`. Jobs get the host's Docker socket
+- `heine` serves `docker`, for checks and pull requests. It runs up to three
+  jobs at once. Jobs get no Docker socket.
+- `heine-build` serves `docker-build`, one job at a time, since its jobs share
+  the host's Docker daemon. Jobs get the host's Docker socket
   (`docker_host: automount`), which buildx's `docker` driver needs, so they
   are root on heine. Use it only for workflows that run trusted code, such as
   a manual build from `main`, never on `pull_request`.
+
+Each runner serves the actions cache through a proxy on heine's own address:
+`heine` on 8088, `heine-build` on 8089. Job containers reach it from their
+Docker bridge, so the firewall accepts those ports on `br-+` only, not from the
+LAN. If a job's cache steps hang until a timeout, check that rule first. The
+firewall otherwise admits SSH, and the node exporter (9100) from the worker.
 
 Both read the registration token from `/etc/forgejo-runner/token` as
 `TOKEN=<token>`, mode 600, not in Git. Each registers on first start, and again
