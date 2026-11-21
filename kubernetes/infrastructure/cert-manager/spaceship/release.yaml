@@ -7,7 +7,7 @@ spec:
   interval: 1h
   url: https://github.com/hjwylde/cert-manager-webhook-spaceship
   ref:
-    commit: 8d417768d2d2a0ed72c6fb978943126c307103f2
+    commit: a60914d8ea2047a616fd273c01e44acfd76cfe18
   ignore: |
     /*
     !/charts/
