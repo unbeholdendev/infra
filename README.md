@@ -27,9 +27,13 @@ with Homepage. See its README for reconciliation and local access commands.
 ## netcup snapshots
 
 `.forgejo/workflows/netcup-snapshot.yml` snapshots the whole of `vps-germany`
-at 02:30 and keeps the four newest. Snapshots sit on netcup storage under the
-netcup account, are taken without stopping anything, and roll back the entire
-server when reverted.
+weekly, Sunday 02:30, and keeps the four newest. Snapshots sit on netcup
+storage under the netcup account, are taken without stopping anything, and roll
+back the entire server when reverted.
+
+netcup does not release the space a deleted snapshot held, so the disk's usage
+in the netcup panel creeps up over time. When it does, run "storage
+optimization" in the panel; it stops the server and deletes all snapshots.
 
 It needs, once:
 
