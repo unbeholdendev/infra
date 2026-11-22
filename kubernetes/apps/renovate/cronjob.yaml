@@ -25,7 +25,7 @@ spec:
               type: RuntimeDefault
           containers:
             - name: renovate
-              image: ghcr.io/renovatebot/renovate:44.256.0@sha256:cc6ccdcfbb697d84cdf0d9fdc49bae3f3817a0af1cf93d95b574929968fe867c
+              image: ghcr.io/renovatebot/renovate:44.257.9@sha256:d6b65ff3562dd499240b23d34ef806ec7e5fd2675e4236a027dfb36774f2aa75
               env:
                 - name: RENOVATE_PLATFORM
                   value: forgejo
