@@ -7,11 +7,7 @@ This is a mirror of my private repo.
 ## Tools
 
 `nix develop`, or direnv with nix-direnv, gives Ansible, OpenTofu, kubectl,
-Flux, talosctl, sops and Helm. Install the Ansible roles once:
-
-```sh
-ansible-galaxy install -r requirements.yml -p galaxy_roles
-```
+Flux, talosctl, sops and Helm.
 
 ## Dion VMs
 
