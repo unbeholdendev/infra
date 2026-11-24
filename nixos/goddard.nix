@@ -5,10 +5,11 @@
 
   nix-bitcoin = {
     generateSecrets = true;
-    configVersion = "0.1.6";
+    configVersion = "0.2.0";
     secrets = {
       fulcrum-ssl-key.user = "fulcrum";
       fulcrum-ssl-cert.user = "fulcrum";
+      unbeholden-lnurl-ntfy-token.user = "unbeholden-lnurl";
     };
   };
 
@@ -36,10 +37,30 @@
   services.unbeholden-wallet = {
     enable = true;
     address = "0.0.0.0";
+    allowedClients = [ "192.168.4.133" ];
     allowedHosts = [ "wallet.home.unbeholden.dev" ];
     electrumServer = "fulcrum";
   };
-  systemd.services.unbeholden-wallet.serviceConfig.IPAddressAllow = [ "192.168.4.133/32" ];
+
+  services.unbeholden-lnurl = {
+    enable = true;
+    address = "192.168.4.11";
+    settings = {
+      trusted_proxies = [ "192.168.4.133" ];
+      addresses."*" = {
+        description = "Much appreciated!";
+        success_message = "Thank you for your contribution";
+        min_sendable = 1000;
+        max_sendable = 1000000000;
+      };
+      notifications.ntfy = {
+        url = "https://ntfy.unbeholden.dev";
+        topic = "lnd";
+        token_file = "${config.nix-bitcoin.secretsDir}/unbeholden-lnurl-ntfy-token";
+      };
+      nostr = {};
+    };
+  };
 
   # bitcoinix creates a new wallet when none exists; this node only runs the migrated one.
   systemd.services.lnd.unitConfig.ConditionPathExists = "/data/lnd/chain/bitcoin/mainnet/wallet.db";
@@ -87,9 +108,9 @@
     nameservers = [ "192.168.4.1" ];
     nftables.enable = true;
     firewall.extraInputRules = ''
-      ip saddr { 192.168.4.12, 192.168.1.0/24, 100.64.0.3 } tcp dport 10009 accept
+      ip saddr { 192.168.1.0/24, 100.64.0.3 } tcp dport 10009 accept
       ip saddr { 192.168.1.0/24, 100.64.0.5 } tcp dport 50002 accept
-      ip saddr 192.168.4.133 tcp dport { 9100, 60846 } accept
+      ip saddr 192.168.4.133 tcp dport { 8081, 9100, 60846 } accept
     '';
   };
 

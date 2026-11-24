@@ -1,9 +1,11 @@
 # NixOS hosts
 
-`goddard` runs Bitcoin Core, LND, Fulcrum and Unbeholden Wallet with [bitcoinix](https://github.com/bitcoinix/bitcoinix),
+`goddard` runs Bitcoin Core, LND, Fulcrum, Unbeholden Wallet and Unbeholden LNURL with [bitcoinix](https://github.com/bitcoinix/bitcoinix),
 pinned in `flake.nix` to a release tag. The root `flake.lock` pins the exact commit.
 
-`heine` runs the Forgejo Actions runner. See [heine](#heine).
+`heine` runs the Forgejo Actions runner. See [heine](#heine). It stays on NixOS 26.05
+through its own `nixpkgs-stable` input, because unstable drops
+`services.gitea-actions-runner`.
 
 `vm.nix` holds what both share: disk layout, boot, SSH and the guest agent.
 

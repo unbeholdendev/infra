@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - flux-system
   - homepage.yaml
+  - lnurl.yaml
   - forgejo.yaml
   - groat.yaml
   - ntfy.yaml
