@@ -3,9 +3,6 @@
     "tag:router": ["unbeholden@"],
     "tag:giran": ["unbeholden@"]
   },
-  "hosts": {
-    "aden": "192.168.4.12/32"
-  },
   "autoApprovers": {
     "routes": {
       "192.168.4.0/24": ["tag:router"],
@@ -16,7 +13,6 @@
   },
   "acls": [
     { "action": "accept", "src": ["tag:giran"], "dst": [
-      "aden:7233", // lnurl
       "192.168.4.200:443",
       "192.168.4.200:222",
     ] },
