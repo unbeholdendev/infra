@@ -32,10 +32,6 @@
         icon: dokploy.png
         href: http://192.168.4.15:3000/
         description: Application deployments
-    - Dockhand:
-        icon: dockhand.png
-        href: http://192.168.4.12:5412/
-        description: Container management
 - Media:
     - Jellyfin:
         icon: jellyfin.png
