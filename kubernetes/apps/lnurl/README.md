@@ -16,5 +16,13 @@ The service holds settlement cursors and zap receipts in
 `/var/lib/unbeholden-lnurl` and its keys in `/etc/nix-bitcoin-secrets`. Back
 both up. A new Nostr key changes the `nostrPubkey` that wallets have seen.
 
-The secret files are `unbeholden-lnurl-nostr` and
-`unbeholden-lnurl-ntfy-token`. Write the ntfy token without a trailing newline.
+The secret files are `unbeholden-lnurl-nostr`, `unbeholden-lnurl-ntfy-token`,
+`unbeholden-lnurl-webhook-stackorange` and
+`unbeholden-lnurl-payments-stackorange`. Write the ntfy token without a
+trailing newline. Stackorange holds the webhook secret, a `whsec_` value, as
+`LNURL_WEBHOOK_SECRET`, and the payments token as `LNURL_API_TOKEN`.
+
+Stackorange pays from the node through `/payments` on this hostname. The
+token is its only check, with no amount limits: Traefik's client address is a
+node's or one LAN and tailnet clients can forge, so `allowed_ips` cannot pin
+Giran.

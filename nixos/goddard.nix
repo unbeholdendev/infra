@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 {
   imports = [ ./vm.nix ];
@@ -10,6 +10,8 @@
       fulcrum-ssl-key.user = "fulcrum";
       fulcrum-ssl-cert.user = "fulcrum";
       unbeholden-lnurl-ntfy-token.user = "unbeholden-lnurl";
+      unbeholden-lnurl-webhook-stackorange.user = "unbeholden-lnurl";
+      unbeholden-lnurl-payments-stackorange.user = "unbeholden-lnurl";
     };
   };
 
@@ -22,6 +24,17 @@
     enable = true;
     dataDir = "/data/lnd";
     rpcAddress = "192.168.4.11";
+    # bitcoinix grants payment RPCs only for withdraw vouchers and lacks TrackPaymentV2.
+    macaroons.unbeholden-lnurl.permissions = lib.mkForce (lib.concatMapStringsSep ","
+      (method: builtins.toJSON { entity = "uri"; action = method; }) [
+        "/lnrpc.Lightning/AddInvoice"
+        "/lnrpc.Lightning/LookupInvoice"
+        "/lnrpc.Lightning/ListInvoices"
+        "/lnrpc.Lightning/SubscribeInvoices"
+        "/lnrpc.Lightning/GetInfo"
+        "/routerrpc.Router/SendPaymentV2"
+        "/routerrpc.Router/TrackPaymentV2"
+      ]);
   };
 
   services.fulcrum = {
@@ -44,6 +57,15 @@
 
   services.unbeholden-lnurl = {
     enable = true;
+    # bitcoinix v0.2.0 packages 0.4.0; drop once it ships 0.6.0 or later.
+    package = config.nix-bitcoin.pkgs.unbeholden-lnurl.overrideAttrs (old: rec {
+      version = "0.6.0";
+      src = old.src.override {
+        tag = "v${version}";
+        hash = "sha256-/mvPwfj3U/EU0Tuyn4qg5SFaT4ojqGuF315Mv1GvhTo=";
+      };
+      ldflags = [ "-s" "-w" "-X main.version=v${version}" ];
+    });
     address = "192.168.4.11";
     settings = {
       trusted_proxies = [ "192.168.4.133" ];
@@ -58,6 +80,13 @@
         topic = "lnd";
         token_file = "${config.nix-bitcoin.secretsDir}/unbeholden-lnurl-ntfy-token";
       };
+      notifications.webhooks.stackorange = {
+        url = "https://stackorange.unbeholden.dev/api/webhooks/lnurl";
+        events = [ "payment.received" "payment.sent" "payment.failed" ];
+        secret_file = "${config.nix-bitcoin.secretsDir}/unbeholden-lnurl-webhook-stackorange";
+      };
+      payments.clients.stackorange.token_file =
+        "${config.nix-bitcoin.secretsDir}/unbeholden-lnurl-payments-stackorange";
       nostr = {};
     };
   };
